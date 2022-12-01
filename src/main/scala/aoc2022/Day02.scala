@@ -8,6 +8,6 @@ object Puzzle03 {
 
 object Puzzle04 {
   def main(args: Array[String]): Unit = {
-    
+
   }
 }
