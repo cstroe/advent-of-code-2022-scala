@@ -1,0 +1,29 @@
+plugins {
+  id 'scala'
+  id 'eclipse'
+  id 'idea'
+  // ScalaTest runner: https://github.com/maiflai/gradle-scalatest
+  id "com.github.maiflai.scalatest" version "0.31"
+}
+
+version = '0.0.1-SNAPSHOT'
+
+project.ext { 
+  scalaVersion = '2.13'
+}
+
+repositories { 
+  mavenCentral()
+}
+
+tasks.withType(Test) {
+  reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+dependencies { 
+  implementation "org.scala-lang:scala-library:${scalaVersion}.+"
+  implementation "org.scala-lang:scala-reflect:${scalaVersion}.+"
+
+  testImplementation "org.scalatest:scalatest_${scalaVersion}:3.1.2"
+  testRuntimeOnly "com.vladsch.flexmark:flexmark-all:0.36.8"
+}
