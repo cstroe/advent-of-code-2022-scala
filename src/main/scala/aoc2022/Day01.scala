@@ -29,6 +29,34 @@ object Puzzle01 {
   }
 }
 
+object Puzzle01Again {
+  case class Elf(item: List[Int]) {
+    val calories: Int = item.sum
+  }
+  case class Acc(elves: List[Elf] = List.empty, currentPack: List[Int] = List.empty) {
+    def newElf(): Acc = Acc(elves :+ Elf(currentPack))
+    def newItem(item: Int): Acc = Acc(elves, currentPack :+ item)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val pwd = sys.props.get("user.dir").get
+    val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
+    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
+
+    Using(Source.fromFile(filePath)) { file =>
+      val mostCalories = file.getLines().foldLeft(Acc()) { case (acc, item) =>
+        if (item.trim.isBlank) {
+          acc.newElf()
+        } else {
+          acc.newItem(item.trim.toInt)
+        }
+      }.elves.map(_.calories).max
+
+      println(s"The highest number of calories: $mostCalories")
+    }
+  }
+}
+
 object Puzzle02 {
   def main(args: Array[String]): Unit = {
     val pwd = sys.props.get("user.dir").get
