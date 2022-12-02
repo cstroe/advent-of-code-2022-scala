@@ -9,7 +9,10 @@ object Puzzle01 {
   def main(args: Array[String]): Unit = {
     val pwd = sys.props.get("user.dir").get
     val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
+    assert(
+      new File(filePath).exists(),
+      s"Could not find input file at: $filePath"
+    )
 
     var mostCalories = 0
     Using(Source.fromFile(filePath)) { file =>
@@ -33,7 +36,10 @@ object Puzzle01Again {
   case class Elf(item: List[Int]) {
     val calories: Int = item.sum
   }
-  case class Acc(elves: List[Elf] = List.empty, currentPack: List[Int] = List.empty) {
+  case class Acc(
+      elves: List[Elf] = List.empty,
+      currentPack: List[Int] = List.empty
+  ) {
     def newElf(): Acc = Acc(elves :+ Elf(currentPack))
     def newItem(item: Int): Acc = Acc(elves, currentPack :+ item)
   }
@@ -41,16 +47,24 @@ object Puzzle01Again {
   def main(args: Array[String]): Unit = {
     val pwd = sys.props.get("user.dir").get
     val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
+    assert(
+      new File(filePath).exists(),
+      s"Could not find input file at: $filePath"
+    )
 
     Using(Source.fromFile(filePath)) { file =>
-      val mostCalories = file.getLines().foldLeft(Acc()) { case (acc, item) =>
-        if (item.trim.isBlank) {
-          acc.newElf()
-        } else {
-          acc.newItem(item.trim.toInt)
+      val mostCalories = file
+        .getLines()
+        .foldLeft(Acc()) { case (acc, item) =>
+          if (item.trim.isBlank) {
+            acc.newElf()
+          } else {
+            acc.newItem(item.trim.toInt)
+          }
         }
-      }.elves.map(_.calories).max
+        .elves
+        .map(_.calories)
+        .max
 
       println(s"The highest number of calories: $mostCalories")
     }
@@ -72,7 +86,10 @@ object Puzzle02 {
   def main(args: Array[String]): Unit = {
     val pwd = sys.props.get("user.dir").get
     val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
+    assert(
+      new File(filePath).exists(),
+      s"Could not find input file at: $filePath"
+    )
 
     val pq = new mutable.PriorityQueue[Int]()
     Using(Source.fromFile(filePath)) { file =>
@@ -99,7 +116,8 @@ object Puzzle02Smaller {
     val top3Sum = readFile("src/main/resources/day01/puzzle01/input")
       .split("\n\n")
       .map(b => b.split("\n").map(_.toInt).sum)
-      .sorted.reverse
+      .sorted
+      .reverse
       .take(3)
       .sum
 

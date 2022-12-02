@@ -8,19 +8,19 @@ object Puzzle03 {
   case class Round(them: Sign, you: Sign) {
     def score: Int = {
       val shapeScore = you match {
-        case Rock => 1
-        case Paper => 2
-        case Scissors =>3
+        case Rock     => 1
+        case Paper    => 2
+        case Scissors => 3
       }
       val winScore = (them, you) match {
-        case (Rock, Rock) => 3
-        case (Rock, Paper) => 6
-        case (Rock, Scissors) => 0
-        case (Paper, Rock) => 0
-        case (Paper, Paper) => 3
-        case (Paper, Scissors) => 6
-        case (Scissors, Rock) => 6
-        case (Scissors, Paper) => 0
+        case (Rock, Rock)         => 3
+        case (Rock, Paper)        => 6
+        case (Rock, Scissors)     => 0
+        case (Paper, Rock)        => 0
+        case (Paper, Paper)       => 3
+        case (Paper, Scissors)    => 6
+        case (Scissors, Rock)     => 6
+        case (Scissors, Paper)    => 0
         case (Scissors, Scissors) => 3
       }
 
@@ -64,31 +64,31 @@ object Puzzle04 {
   case class Round(them: Sign, outcome: Outcome) {
     def score: Int = {
       val you = (them, outcome) match {
-        case (Rock, Lose) => Scissors
-        case (Rock, Draw) => Rock
-        case (Rock, Win) => Paper
-        case (Paper, Lose) => Rock
-        case (Paper, Draw) => Paper
-        case (Paper, Win) => Scissors
+        case (Rock, Lose)     => Scissors
+        case (Rock, Draw)     => Rock
+        case (Rock, Win)      => Paper
+        case (Paper, Lose)    => Rock
+        case (Paper, Draw)    => Paper
+        case (Paper, Win)     => Scissors
         case (Scissors, Lose) => Paper
         case (Scissors, Draw) => Scissors
-        case (Scissors, Win) => Rock
+        case (Scissors, Win)  => Rock
       }
       val winScore = (them, you) match {
-        case (Rock, Rock) => 3
-        case (Rock, Paper) => 6
-        case (Rock, Scissors) => 0
-        case (Paper, Rock) => 0
-        case (Paper, Paper) => 3
-        case (Paper, Scissors) => 6
-        case (Scissors, Rock) => 6
-        case (Scissors, Paper) => 0
+        case (Rock, Rock)         => 3
+        case (Rock, Paper)        => 6
+        case (Rock, Scissors)     => 0
+        case (Paper, Rock)        => 0
+        case (Paper, Paper)       => 3
+        case (Paper, Scissors)    => 6
+        case (Scissors, Rock)     => 6
+        case (Scissors, Paper)    => 0
         case (Scissors, Scissors) => 3
       }
 
       val shapeScore = you match {
-        case Rock => 1
-        case Paper => 2
+        case Rock     => 1
+        case Paper    => 2
         case Scissors => 3
       }
 

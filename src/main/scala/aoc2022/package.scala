@@ -8,9 +8,13 @@ package object aoc2022 {
   def readFile(relPath: String): String = {
     val pwd = sys.props.get("user.dir").get
     val filePath = s"$pwd/$relPath"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
+    assert(
+      new File(filePath).exists(),
+      s"Could not find input file at: $filePath"
+    )
 
-    Files.asCharSource(new File(filePath), Charsets.UTF_8)
+    Files
+      .asCharSource(new File(filePath), Charsets.UTF_8)
       .read()
   }
 
