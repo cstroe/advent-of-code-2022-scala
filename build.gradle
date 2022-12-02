@@ -24,6 +24,8 @@ dependencies {
   implementation "org.scala-lang:scala-library:${scalaVersion}.+"
   implementation "org.scala-lang:scala-reflect:${scalaVersion}.+"
 
+  implementation "com.google.guava:guava:31.1-jre"
+
   testImplementation "org.scalatest:scalatest_${scalaVersion}:3.1.2"
   testRuntimeOnly "com.vladsch.flexmark:flexmark-all:0.36.8"
 }
