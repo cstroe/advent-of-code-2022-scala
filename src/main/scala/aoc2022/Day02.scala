@@ -27,7 +27,6 @@ object Puzzle03 {
       shapeScore + winScore
     }
   }
-  case class Game(opponent: Sign)
   def main(args: Array[String]): Unit = {
     val contents = readFileToLines("src/main/resources/day02/input")
     val sum = contents.map { line =>
