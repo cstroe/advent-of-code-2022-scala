@@ -1,8 +1,5 @@
 package aoc2022
 
-import com.google.common.base.Charsets
-import com.google.common.io.Files
-
 import java.io.File
 import scala.collection.mutable
 import scala.io.Source
@@ -62,12 +59,7 @@ object Puzzle01Again {
 
 object Puzzle01Smaller {
   def main(args: Array[String]): Unit = {
-    val pwd = sys.props.get("user.dir").get
-    val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
-
-    val mostCalories = Files.asCharSource(new File(filePath), Charsets.UTF_8)
-      .read()
+    val mostCalories = readFile("src/main/resources/day01/puzzle01/input")
       .split("\n\n")
       .map(b => b.split("\n").map(_.toInt).sum)
       .max
@@ -102,14 +94,9 @@ object Puzzle02 {
   }
 }
 
-object Puzzle02Again {
+object Puzzle02Smaller {
   def main(args: Array[String]): Unit = {
-    val pwd = sys.props.get("user.dir").get
-    val filePath = s"$pwd/src/main/resources/day01/puzzle01/input"
-    assert(new File(filePath).exists(), s"Could not find input file at: $filePath")
-
-    val top3Sum = Files.asCharSource(new File(filePath), Charsets.UTF_8)
-      .read()
+    val top3Sum = readFile("src/main/resources/day01/puzzle01/input")
       .split("\n\n")
       .map(b => b.split("\n").map(_.toInt).sum)
       .sorted.reverse
