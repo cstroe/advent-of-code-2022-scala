@@ -39,7 +39,7 @@ object Day05 {
         val moveThisMany = patternMatch.group(1).toInt
         val fromStack = patternMatch.group(2).toInt - 1
         val toStack = patternMatch.group(3).toInt - 1
-        Range(0, moveThisMany).foreach { _ =>
+        (0 until moveThisMany).foreach { _ =>
           val crate = stacks(fromStack).pop()
           stacks(toStack).push(crate)
         }
@@ -69,14 +69,14 @@ object Day05Part2 {
     //  1   2   3   4   5   6   7   8   9
     val numStacks = stackRepresentation.last.count(_ != 32)
 
-    val stacks = Range(0, numStacks).map { i =>
+    val stacks = (0 until numStacks).map { i =>
       scala.collection.mutable.Stack[String]()
     }
 
-    Range.inclusive(stackRepresentation.length - 2, 0, -1).map { i =>
+    (stackRepresentation.length - 2 to (0, -1)).map { i =>
       stackRepresentation(i)
     }.foreach { line =>
-      Range(0, numStacks).foreach { stackNum =>
+      (0 until numStacks).foreach { stackNum =>
         val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
         if (crate != " ") {
           stacks(stackNum).push(crate)
@@ -91,11 +91,11 @@ object Day05Part2 {
         val fromStack = patternMatch.group(2).toInt - 1
         val toStack = patternMatch.group(3).toInt - 1
         val tempStack = scala.collection.mutable.Stack[String]()
-        Range(0, moveThisMany).foreach { _ =>
+        (0 until moveThisMany).foreach { _ =>
           val crate = stacks(fromStack).pop()
           tempStack.push(crate)
         }
-        Range(0, moveThisMany).foreach { _ =>
+        (0 until moveThisMany).foreach { _ =>
           val crate = tempStack.pop()
           stacks(toStack).push(crate)
         }
@@ -105,6 +105,5 @@ object Day05Part2 {
     val output = stacks.map(_.top).mkString("")
     println(s"Output is: $output")
   }
-
 }
 
