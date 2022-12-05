@@ -16,7 +16,7 @@ object Day05 {
      */
     val stackRepresentation = contents.takeWhile(_.nonEmpty).toList
     //  1   2   3   4   5   6   7   8   9
-    val numStacks = stackRepresentation.last.count(_ != 32)
+    val numStacks = stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
 
     val stacks = (0 until numStacks).map { _ =>
       scala.collection.mutable.Stack[String]()
@@ -47,6 +47,7 @@ object Day05 {
     }
 
     val output = stacks.map(_.top).mkString("")
+    assert(output == "BZLVHBWQF")
     println(s"Output is: $output")
   }
 }
@@ -67,7 +68,7 @@ object Day05Part2 {
      */
     val stackRepresentation = contents.takeWhile(_.nonEmpty).toList
     //  1   2   3   4   5   6   7   8   9
-    val numStacks = stackRepresentation.last.count(_ != 32)
+    val numStacks = stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
 
     val stacks = (0 until numStacks).map { i =>
       scala.collection.mutable.Stack[String]()
@@ -103,6 +104,7 @@ object Day05Part2 {
     }
 
     val output = stacks.map(_.top).mkString("")
+    assert(output == "TDGJQTZSL")
     println(s"Output is: $output")
   }
 }
