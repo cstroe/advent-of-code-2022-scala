@@ -18,14 +18,14 @@ object Day05 {
     //  1   2   3   4   5   6   7   8   9
     val numStacks = stackRepresentation.last.count(_ != 32)
 
-    val stacks = Range(0, numStacks).map { i =>
+    val stacks = (0 until numStacks).map { _ =>
       scala.collection.mutable.Stack[String]()
     }
 
-    Range.inclusive(stackRepresentation.length-2, 0, -1).map { i =>
+    (stackRepresentation.length-2 to (0, -1)).map { i =>
       stackRepresentation(i)
     }.foreach { line =>
-      Range(0, numStacks).foreach { stackNum =>
+      (0 until numStacks).foreach { stackNum =>
         val crate = line.substring((stackNum*4)+1,(stackNum*4)+2)
         if (crate != " ") {
           stacks(stackNum).push(crate)
