@@ -16,25 +16,28 @@ object Day05 {
      */
     val stackRepresentation = contents.takeWhile(_.nonEmpty).toList
     //  1   2   3   4   5   6   7   8   9
-    val numStacks = stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
+    val numStacks =
+      stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
 
     val stacks = (0 until numStacks).map { _ =>
       scala.collection.mutable.Stack[String]()
     }
 
-    (stackRepresentation.length-2 to (0, -1)).map { i =>
-      stackRepresentation(i)
-    }.foreach { line =>
-      (0 until numStacks).foreach { stackNum =>
-        val crate = line.substring((stackNum*4)+1,(stackNum*4)+2)
-        if (crate != " ") {
-          stacks(stackNum).push(crate)
+    (stackRepresentation.length - 2 to (0, -1))
+      .map { i =>
+        stackRepresentation(i)
+      }
+      .foreach { line =>
+        (0 until numStacks).foreach { stackNum =>
+          val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
+          if (crate != " ") {
+            stacks(stackNum).push(crate)
+          }
         }
       }
-    }
 
     val instrRegex = "move ([0-9]+) from ([0-9]+) to ([0-9]+)".r
-    contents.drop(stackRepresentation.length+1).foreach { instr =>
+    contents.drop(stackRepresentation.length + 1).foreach { instr =>
       for (patternMatch <- instrRegex.findAllMatchIn(instr)) {
         val moveThisMany = patternMatch.group(1).toInt
         val fromStack = patternMatch.group(2).toInt - 1
@@ -68,22 +71,25 @@ object Day05Part2 {
      */
     val stackRepresentation = contents.takeWhile(_.nonEmpty).toList
     //  1   2   3   4   5   6   7   8   9
-    val numStacks = stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
+    val numStacks =
+      stackRepresentation.last.split(" ").filterNot(_.isEmpty).length
 
     val stacks = (0 until numStacks).map { i =>
       scala.collection.mutable.Stack[String]()
     }
 
-    (stackRepresentation.length - 2 to (0, -1)).map { i =>
-      stackRepresentation(i)
-    }.foreach { line =>
-      (0 until numStacks).foreach { stackNum =>
-        val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
-        if (crate != " ") {
-          stacks(stackNum).push(crate)
+    (stackRepresentation.length - 2 to (0, -1))
+      .map { i =>
+        stackRepresentation(i)
+      }
+      .foreach { line =>
+        (0 until numStacks).foreach { stackNum =>
+          val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
+          if (crate != " ") {
+            stacks(stackNum).push(crate)
+          }
         }
       }
-    }
 
     val instrRegex = "move ([0-9]+) from ([0-9]+) to ([0-9]+)".r
     contents.drop(stackRepresentation.length + 1).foreach { instr =>
@@ -108,4 +114,3 @@ object Day05Part2 {
     println(s"Output is: $output")
   }
 }
-
