@@ -24,9 +24,7 @@ object Day05 {
     }
 
     (stackRepresentation.length - 2 to (0, -1))
-      .map { i =>
-        stackRepresentation(i)
-      }
+      .map(stackRepresentation(_))
       .foreach { line =>
         (0 until numStacks).foreach { stackNum =>
           val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
@@ -79,9 +77,7 @@ object Day05Part2 {
     }
 
     (stackRepresentation.length - 2 to (0, -1))
-      .map { i =>
-        stackRepresentation(i)
-      }
+      .map(stackRepresentation(_))
       .foreach { line =>
         (0 until numStacks).foreach { stackNum =>
           val crate = line.substring((stackNum * 4) + 1, (stackNum * 4) + 2)
