@@ -4,7 +4,7 @@ object Day06 {
   def main(args: Array[String]): Unit = {
     val contents = readFile("src/main/resources/day06/input")
     // _ ( _ _ _ _)
-    val packet = contents
+    val (window, startOfWindow) = contents
       .sliding(4)
       .zipWithIndex
       .find { case (window, _) =>
@@ -12,14 +12,14 @@ object Day06 {
       }
       .get
 
-    print(packet._2 + 4)
+    print(startOfWindow + window.length)
   }
 }
 
 object Day06Part2 {
   def main(args: Array[String]): Unit = {
     val contents = readFile("src/main/resources/day06/input")
-    val packet = contents
+    val (window, startOfWindow) = contents
       .sliding(14)
       .zipWithIndex
       .find { case (window, _) =>
@@ -27,6 +27,6 @@ object Day06Part2 {
       }
       .get
 
-    print(packet._2 + 14)
+    print(startOfWindow + window.length)
   }
 }
