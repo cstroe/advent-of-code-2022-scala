@@ -7,8 +7,8 @@ object Day06 {
     val packet = contents
       .sliding(4)
       .zipWithIndex
-      .find { w =>
-        w._1.toCharArray.toSet.size == 4
+      .find { case (window, _) =>
+        window.toCharArray.toSet.size == 4
       }
       .get
 
@@ -22,8 +22,8 @@ object Day06Part2 {
     val packet = contents
       .sliding(14)
       .zipWithIndex
-      .find { w =>
-        w._1.toCharArray.toSet.size == 14
+      .find { case (window, _) =>
+        window.toCharArray.toSet.size == 14
       }
       .get
 
