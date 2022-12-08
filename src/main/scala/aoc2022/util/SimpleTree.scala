@@ -15,9 +15,11 @@ object SimpleTree {
   }
 }
 
-class MyTreeNode[C, D](val name: C,
-                       val value: D,
-                       var children: mutable.ArrayBuffer[MyTreeNode[C, D]]) {}
+class MyTreeNode[C, D](
+    val name: C,
+    val value: D,
+    var children: mutable.ArrayBuffer[MyTreeNode[C, D]]
+) {}
 
 class SimpleTreeImpl[A, B] extends SimpleTree[A, B] {
   var root: Option[MyTreeNode[A, B]] = None
@@ -33,4 +35,3 @@ class SimpleTreeImpl[A, B] extends SimpleTree[A, B] {
     ???
   }
 }
-
