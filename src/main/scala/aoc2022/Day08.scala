@@ -1,5 +1,8 @@
 package aoc2022
 
+/**
+ * Notes: Need to get much better at iterating with accumulation + early termination.
+ */
 object Day08 {
   sealed trait Direction
   case object Horizontal extends Direction
