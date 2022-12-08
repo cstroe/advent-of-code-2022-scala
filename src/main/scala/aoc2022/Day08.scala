@@ -100,17 +100,13 @@ object Day08Part2 {
       0
     } else {
       val treeHeight = map(row)(col)
-      var treesVisible = 0
-      val sum = ((row - 1) to (0, -1))
-        .takeWhile { currentRow =>
-          treesVisible = treesVisible + 1
-          val currentTreeHeight = map(currentRow)(col)
-          currentTreeHeight < treeHeight
-        }
-        .map(_ => 1)
-        .sum
-      // println(sum)
-      treesVisible
+      val visibleUntil = ((row - 1) to (0, -1))
+        .map(cr => (cr, map(cr)(col)))
+        .find { tp => tp._2 >= treeHeight }
+        .map(_._1)
+        .getOrElse(0)
+
+      row - visibleUntil
     }
   }
 
@@ -119,17 +115,13 @@ object Day08Part2 {
       0
     } else {
       val treeHeight = heightMap(row)(col)
-      var treesVisible = 0
-      val sum = (row + 1 until heightMap.length)
-        .takeWhile { currentRow =>
-          treesVisible = treesVisible + 1
-          val currentTreeHeight = heightMap(currentRow)(col)
-          currentTreeHeight < treeHeight
-        }
-        .map(_ => 1)
-        .sum
-      // println(sum)
-      treesVisible
+      val visibleUntil = ((row + 1) until heightMap.length)
+        .map { cr => (cr, heightMap(cr)(col)) }
+        .find { tp => tp._2 >= treeHeight }
+        .map(_._1)
+        .getOrElse(heightMap.length - 1)
+
+      visibleUntil - row
     }
   }
 
