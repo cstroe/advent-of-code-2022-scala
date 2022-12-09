@@ -2,7 +2,19 @@ package aoc2022
 
 import scala.collection.mutable
 
-// According to Reddit discussion, should have used complex numbers here...
+/**
+ * According to Reddit discussion, should have used complex numbers here...
+ *
+ * Example from https://github.com/fuglede/adventofcode/blob/master/2022/day09/solutions.py#L13-L18
+ *
+ * def new_tail(head, tail):
+ *   if abs(head - tail) < 2:
+ *     return tail
+ *   tail += sign(head.real - tail.real)
+ *   tail += sign(head.imag - tail.imag) * 1j
+ *   return tail
+ *
+ */
 object Day09 {
   def moveHead(head: (Int, Int), dir: String): (Int, Int) = {
     dir match {
