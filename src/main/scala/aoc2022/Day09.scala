@@ -162,6 +162,7 @@ object Day09Part2 {
         newList.toList
       }
 
+    assert(positions.size == 2445, s"${positions.size} != 2445")
     println(positions.size)
   }
 }
