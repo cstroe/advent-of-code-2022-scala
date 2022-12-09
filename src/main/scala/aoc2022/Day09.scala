@@ -2,6 +2,7 @@ package aoc2022
 
 import scala.collection.mutable
 
+// According to Reddit discussion, should have used complex numbers here...
 object Day09 {
   def moveHead(head: (Int, Int), dir: String): (Int, Int) = {
     dir match {
