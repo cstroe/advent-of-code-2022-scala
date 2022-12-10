@@ -6,6 +6,7 @@ plugins {
   id "com.github.maiflai.scalatest" version "0.31"
   // Spotless: https://github.com/diffplug/spotless
   id "com.diffplug.spotless" version "6.12.0"
+  id 'application'
 }
 
 version = '0.0.1-SNAPSHOT'
@@ -26,6 +27,10 @@ spotless {
   scala {
     scalafmt() // has its own section below
   }
+}
+
+application {
+  mainClass = 'aoc2022.Day10Part2'
 }
 
 dependencies { 

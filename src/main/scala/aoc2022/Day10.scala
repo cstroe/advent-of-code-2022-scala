@@ -57,7 +57,7 @@ object Day10Part2 {
   def main(args: Array[String]): Unit = {
     val contents = readFileToLines("src/main/resources/day10/input")
 
-    val screen: Array[String] = Array.fill(240)(".")
+    val screen: Array[String] = Array.fill(240)(" ")
 
     val commands = contents
       .flatMap { line =>
@@ -80,7 +80,7 @@ object Day10Part2 {
 
       if ((register - 1) to (register + 1) contains pixelHorizontalPos) {
         // pixel is lit
-        screen(currentPixelBeingDrawn) = "#"
+        screen(currentPixelBeingDrawn) = "█"
       }
       command match {
         case Noop    => register
