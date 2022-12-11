@@ -30,7 +30,7 @@ spotless {
 }
 
 application {
-  mainClass = 'aoc2022.Day10Part2'
+  mainClass = 'aoc2022.Day11Part2'
 }
 
 dependencies { 
