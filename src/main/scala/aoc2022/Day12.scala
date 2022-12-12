@@ -2,8 +2,8 @@ package aoc2022
 
 import scala.collection.mutable
 
-/** could not get DFS to work, switched to BFS after looking it up I need to
-  * understand what I messed up with DFS
+/** DFS took forever on the main input, couldn't get an answer. Switched to BFS
+  * after looking up an example. I need to understand what I messed up with DFS.
   */
 object Day12 {
   case class TopoPoint(row: Int, col: Int, value: Char)
