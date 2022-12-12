@@ -2,19 +2,21 @@ package aoc2022
 
 import scala.collection.mutable
 
-/**
- * could not get DFS to work, switched to BFS after looking it up
- * I need to understand what I messed up with DFS
- */
+/** could not get DFS to work, switched to BFS after looking it up I need to
+  * understand what I messed up with DFS
+  */
 object Day12 {
   case class TopoPoint(row: Int, col: Int, value: Char)
 
   class TopoMap(map: Array[Array[TopoPoint]]) {
     def neighbors(point: TopoPoint): Seq[TopoPoint] = {
-      List((-1, 0), (1, 0), (0, -1), (0, 1)).map { case (rd, cd) =>
-        (point.row + rd, point.col + cd)
-      }
-        .filter { case (r, c) => r >= 0 && r < map.length && c >= 0 && c < map(0).length }
+      List((-1, 0), (1, 0), (0, -1), (0, 1))
+        .map { case (rd, cd) =>
+          (point.row + rd, point.col + cd)
+        }
+        .filter { case (r, c) =>
+          r >= 0 && r < map.length && c >= 0 && c < map(0).length
+        }
         .map { case (r, c) => map(r)(c) }
     }
   }
@@ -23,20 +25,21 @@ object Day12 {
     var start: TopoPoint = TopoPoint(0, 0, 0)
     var end: TopoPoint = TopoPoint(0, 0, 0)
 
-    val topmap: Array[Array[TopoPoint]] = lines.zipWithIndex.map { case (line, row) =>
-      line.toCharArray.zipWithIndex.map { case (char, col) =>
-        char match {
-          case 'S' =>
-            val point = TopoPoint(row, col, 'a')
-            start = point
-            point
-          case 'E' =>
-            val point = TopoPoint(row, col, 'z')
-            end = point
-            point
-          case c => TopoPoint(row, col, c)
+    val topmap: Array[Array[TopoPoint]] = lines.zipWithIndex.map {
+      case (line, row) =>
+        line.toCharArray.zipWithIndex.map { case (char, col) =>
+          char match {
+            case 'S' =>
+              val point = TopoPoint(row, col, 'a')
+              start = point
+              point
+            case 'E' =>
+              val point = TopoPoint(row, col, 'z')
+              end = point
+              point
+            case c => TopoPoint(row, col, c)
+          }
         }
-      }
     }
 
     val map = new TopoMap(topmap)
@@ -63,7 +66,10 @@ object Day12 {
         run = false
       } else {
         map.neighbors(currentPos).foreach { neighbor =>
-          if (neighbor.value - currentPos.value <= 1 && !visited.contains(neighbor)) {
+          if (
+            neighbor.value - currentPos.value <= 1 && !visited
+              .contains(neighbor)
+          ) {
             queue.enqueue((neighbor, currentLength + 1))
             visited.add(neighbor)
           }
@@ -76,16 +82,18 @@ object Day12 {
   }
 }
 
-
 object Day12Part2 {
   case class TopoPoint(row: Int, col: Int, value: Char)
 
   class TopoMap(val map: Array[Array[TopoPoint]]) {
     def neighbors(point: TopoPoint): Seq[TopoPoint] = {
-      List((-1, 0), (1, 0), (0, -1), (0, 1)).map { case (rd, cd) =>
-        (point.row + rd, point.col + cd)
-      }
-        .filter { case (r, c) => r >= 0 && r < map.length && c >= 0 && c < map(0).length }
+      List((-1, 0), (1, 0), (0, -1), (0, 1))
+        .map { case (rd, cd) =>
+          (point.row + rd, point.col + cd)
+        }
+        .filter { case (r, c) =>
+          r >= 0 && r < map.length && c >= 0 && c < map(0).length
+        }
         .map { case (r, c) => map(r)(c) }
     }
   }
@@ -94,20 +102,21 @@ object Day12Part2 {
     var start: TopoPoint = TopoPoint(0, 0, 0)
     var end: TopoPoint = TopoPoint(0, 0, 0)
 
-    val topmap: Array[Array[TopoPoint]] = lines.zipWithIndex.map { case (line, row) =>
-      line.toCharArray.zipWithIndex.map { case (char, col) =>
-        char match {
-          case 'S' =>
-            val point = TopoPoint(row, col, 'a')
-            start = point
-            point
-          case 'E' =>
-            val point = TopoPoint(row, col, 'z')
-            end = point
-            point
-          case c => TopoPoint(row, col, c)
+    val topmap: Array[Array[TopoPoint]] = lines.zipWithIndex.map {
+      case (line, row) =>
+        line.toCharArray.zipWithIndex.map { case (char, col) =>
+          char match {
+            case 'S' =>
+              val point = TopoPoint(row, col, 'a')
+              start = point
+              point
+            case 'E' =>
+              val point = TopoPoint(row, col, 'z')
+              end = point
+              point
+            case c => TopoPoint(row, col, c)
+          }
         }
-      }
     }
 
     val map = new TopoMap(topmap)
@@ -130,7 +139,10 @@ object Day12Part2 {
         run = false
       } else {
         map.neighbors(currentPos).foreach { neighbor =>
-          if (neighbor.value - currentPos.value <= 1 && !visited.contains(neighbor)) {
+          if (
+            neighbor.value - currentPos.value <= 1 && !visited
+              .contains(neighbor)
+          ) {
             queue.enqueue((neighbor, currentLength + 1))
             visited.add(neighbor)
           }
