@@ -32,13 +32,13 @@ object Day13 {
               val term = buffer.mkString("")
               buffer.clear()
               acc :+ term
-            case "[" =>
+            case c if "[" =>
               termDepth += 1
-              buffer.append("[")
+              buffer.append(c)
               acc
-            case "]" =>
+            case c if "]" =>
               termDepth -= 1
-              buffer.append("]")
+              buffer.append(c)
               acc
             case c =>
               buffer.append(c)
@@ -78,17 +78,8 @@ object Day13 {
             val rightTerm = rightTerms(i)
 
             compare(leftTerm, rightTerm) match {
-              case Smaller =>
-                comparison = Smaller
-                break()
-              case Bigger =>
-                comparison = Bigger
-                break()
-              case LeftOutOfItems =>
-                comparison = LeftOutOfItems
-                break()
-              case RightOutOfItems =>
-                comparison = RightOutOfItems
+              case c @ (Smaller | Bigger | LeftOutOfItems | RightOutOfItems) =>
+                comparison = c
                 break()
               case Equal =>
             }
@@ -103,29 +94,26 @@ object Day13 {
 
   def inOrder(left: String, right: String): Boolean = {
     compare(left, right) match {
-      case Smaller         => true
-      case Equal           => true
-      case Bigger          => false
-      case LeftOutOfItems  => true
-      case RightOutOfItems => false
+      case Smaller | Equal | LeftOutOfItems => true
+      case Bigger | RightOutOfItems         => false
     }
   }
 
   def main(args: Array[String]): Unit = {
-    val contents = readFile("src/main/resources/day13/input")
-
-    val pairsComparison: Array[(Boolean, Int)] = contents
-      .split("\n\n")
-      .zipWithIndex
-      .map { case (line, index) => (line, index + 1) }
-      .map { case (pairs, index) =>
-        val pairsList = pairs.split("\n")
-        val left = pairsList(0)
-        val right = pairsList(1)
-        (inOrder(left, right), index)
-      }
-
-    val sum = pairsComparison.filter(c => c._1).map(_._2).sum
-    assert(sum == 5625)
+    val answer =
+      readFile("src/main/resources/day13/input")
+        .split("\n\n")
+        .zipWithIndex
+        .map { case (line, index) => (line, index + 1) }
+        .map { case (pairs, index) =>
+          val pairsList = pairs.split("\n")
+          val left = pairsList(0)
+          val right = pairsList(1)
+          (inOrder(left, right), index)
+        }
+        .filter(c => c._1)
+        .map(_._2)
+        .sum
+    assert(answer == 5625)
   }
 }
