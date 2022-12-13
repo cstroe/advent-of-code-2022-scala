@@ -16,7 +16,8 @@ object Day13 {
   object IntTerm extends TermType
 
   def getType(str: String): TermType = {
-    if (str.startsWith("[")) { ListTerm } else { IntTerm }
+    if (str.startsWith("[")) { ListTerm }
+    else { IntTerm }
   }
 
   def listToTerms(list: String): List[String] = {
@@ -24,24 +25,25 @@ object Day13 {
     else {
       val buffer = mutable.ArrayBuffer[String]()
       var termDepth = 0
-      val terms = (1 until list.length - 1).foldLeft(List.empty[String]) { case (acc, i) =>
-        list.substring(i, i+1) match {
-          case "," if termDepth == 0 =>
-            val term = buffer.mkString("")
-            buffer.clear()
-            acc :+ term
-          case "[" =>
-            termDepth += 1
-            buffer.append("[")
-            acc
-          case "]" =>
-            termDepth -= 1
-            buffer.append("]")
-            acc
-          case c =>
-            buffer.append(c)
-            acc
-        }
+      val terms = (1 until list.length - 1).foldLeft(List.empty[String]) {
+        case (acc, i) =>
+          list.substring(i, i + 1) match {
+            case "," if termDepth == 0 =>
+              val term = buffer.mkString("")
+              buffer.clear()
+              acc :+ term
+            case "[" =>
+              termDepth += 1
+              buffer.append("[")
+              acc
+            case "]" =>
+              termDepth -= 1
+              buffer.append("]")
+              acc
+            case c =>
+              buffer.append(c)
+              acc
+          }
       }
 
       if (buffer.nonEmpty) {
@@ -57,8 +59,8 @@ object Day13 {
       case (IntTerm, IntTerm) =>
         left.toInt.compare(right.toInt) match {
           case -1 => Smaller
-          case 0 => Equal
-          case 1 => Bigger
+          case 0  => Equal
+          case 1  => Bigger
         }
       case (ListTerm, IntTerm) => compare(left, s"[$right]")
       case (IntTerm, ListTerm) => compare(s"[$left]", right)
@@ -101,10 +103,10 @@ object Day13 {
 
   def inOrder(left: String, right: String): Boolean = {
     compare(left, right) match {
-      case Smaller => true
-      case Equal => true
-      case Bigger => false
-      case LeftOutOfItems => true
+      case Smaller         => true
+      case Equal           => true
+      case Bigger          => false
+      case LeftOutOfItems  => true
       case RightOutOfItems => false
     }
   }
@@ -112,9 +114,10 @@ object Day13 {
   def main(args: Array[String]): Unit = {
     val contents = readFile("src/main/resources/day13/input")
 
-    val pairsComparison: Array[(Boolean, Int)] = contents.split("\n\n")
+    val pairsComparison: Array[(Boolean, Int)] = contents
+      .split("\n\n")
       .zipWithIndex
-      .map { case (line, index) => (line, index+1) }
+      .map { case (line, index) => (line, index + 1) }
       .map { case (pairs, index) =>
         val pairsList = pairs.split("\n")
         val left = pairsList(0)
