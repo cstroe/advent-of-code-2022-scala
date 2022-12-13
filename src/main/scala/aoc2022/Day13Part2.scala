@@ -3,7 +3,6 @@ package aoc2022
 import aoc2022.Day13._
 
 object Day13Part2 {
-
   def main(args: Array[String]): Unit = {
     val output: Int =
       (readFileToLines("src/main/resources/day13/input") ++ List(
