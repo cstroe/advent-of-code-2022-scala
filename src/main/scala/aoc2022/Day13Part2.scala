@@ -11,8 +11,7 @@ object Day13Part2 {
     val sorted: Array[String] =
       contents.filterNot(_.trim.isBlank).sortInPlaceWith { case (left, right) =>
         compare(left, right) match {
-          case Smaller => true
-          case LeftOutOfItems => true
+          case Smaller | LeftOutOfItems => true
           case _ => false
         }
       }.toArray
