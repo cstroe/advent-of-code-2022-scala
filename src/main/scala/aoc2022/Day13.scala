@@ -32,11 +32,11 @@ object Day13 {
               val term = buffer.mkString("")
               buffer.clear()
               acc :+ term
-            case c if "[" =>
+            case c if c == "[" =>
               termDepth += 1
               buffer.append(c)
               acc
-            case c if "]" =>
+            case c if c == "]" =>
               termDepth -= 1
               buffer.append(c)
               acc
