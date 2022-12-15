@@ -6,9 +6,9 @@ import scala.collection.mutable
 object Day14Part1 {
   // creating new points for this is slow
   case class Point(x: Int, y: Int) {
-    def down(): Point = Point(x, y+1)
-    def left(): Point = Point(x-1, y+1)
-    def right(): Point = Point(x+1, y+1)
+    def down(): Point = Point(x, y + 1)
+    def left(): Point = Point(x - 1, y + 1)
+    def right(): Point = Point(x + 1, y + 1)
   }
   case class Line(start: Point, end: Point) {
     val points: Set[Point] = {
@@ -24,7 +24,11 @@ object Day14Part1 {
     }
   }
 
-  def isOccupied(point: Point, rocks: List[Line], grains: Set[Point]): Boolean = {
+  def isOccupied(
+      point: Point,
+      rocks: List[Line],
+      grains: Set[Point]
+  ): Boolean = {
     val hitRock = rocks.exists(_.points.contains(point))
     val hitGrain = grains.contains(point)
 
@@ -34,8 +38,13 @@ object Day14Part1 {
   }
 
   @tailrec
-  def comeToRest(grainStart: Point, rocks: List[Line], grains: Set[Point], highestY: Int): Option[Point] = {
-    //println(grainStart)
+  def comeToRest(
+      grainStart: Point,
+      rocks: List[Line],
+      grains: Set[Point],
+      highestY: Int
+  ): Option[Point] = {
+    // println(grainStart)
     if (grainStart.y > highestY) {
       None
     } else {
@@ -57,15 +66,23 @@ object Day14Part1 {
     val rocks: List[Line] =
       readFileToLines("src/main/resources/day14/input")
         .map { line =>
-          line.split(" -> ").map { coord =>
-            val splits = coord.split(",")
-            Point(splits(0).toInt, splits(1).toInt)
-          }.toList
-        }.flatMap { rocks =>
-        rocks.sliding(2).map {
-          g => Line(g(0), g(1))
-        }.toList
-      }.toList
+          line
+            .split(" -> ")
+            .map { coord =>
+              val splits = coord.split(",")
+              Point(splits(0).toInt, splits(1).toInt)
+            }
+            .toList
+        }
+        .flatMap { rocks =>
+          rocks
+            .sliding(2)
+            .map { g =>
+              Line(g(0), g(1))
+            }
+            .toList
+        }
+        .toList
 
     val highestY = rocks.flatMap(l => List(l.start.y, l.end.y)).max
 

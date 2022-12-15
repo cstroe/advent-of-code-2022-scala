@@ -5,10 +5,8 @@ import aoc2022.Day14Part1.Point
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-
-/**
- * This implementation is slow, it should be sped up
- */
+/** This implementation is slow, it should be sped up
+  */
 object Day14Part2 {
   sealed trait Line {
     def intersects(point: Point): Boolean
@@ -30,14 +28,22 @@ object Day14Part2 {
     }
   }
 
-  def isOccupied(point: Point, rocks: List[Line], grains: mutable.Set[Point]): Boolean = {
+  def isOccupied(
+      point: Point,
+      rocks: List[Line],
+      grains: mutable.Set[Point]
+  ): Boolean = {
     val hitRock = rocks.exists(_.intersects(point))
     val hitGrain = grains.contains(point)
     hitRock || hitGrain
   }
 
   @tailrec
-  def comeToRest(grainStart: Point, rocks: List[Line], grains: mutable.Set[Point]): Option[Point] = {
+  def comeToRest(
+      grainStart: Point,
+      rocks: List[Line],
+      grains: mutable.Set[Point]
+  ): Option[Point] = {
     if (!isOccupied(grainStart.down(), rocks, grains)) {
       comeToRest(grainStart.down(), rocks, grains)
     } else if (!isOccupied(grainStart.left(), rocks, grains)) {
@@ -54,15 +60,23 @@ object Day14Part2 {
     val rocks: List[FiniteLine] =
       readFileToLines("src/main/resources/day14/input")
         .map { line =>
-          line.split(" -> ").map { coord =>
-            val splits = coord.split(",")
-            Point(splits(0).toInt, splits(1).toInt)
-          }.toList
-        }.flatMap { rocks =>
-          rocks.sliding(2).map {
-            g => FiniteLine(g(0), g(1))
-          }.toList
-        }.toList
+          line
+            .split(" -> ")
+            .map { coord =>
+              val splits = coord.split(",")
+              Point(splits(0).toInt, splits(1).toInt)
+            }
+            .toList
+        }
+        .flatMap { rocks =>
+          rocks
+            .sliding(2)
+            .map { g =>
+              FiniteLine(g(0), g(1))
+            }
+            .toList
+        }
+        .toList
 
     val highestY = rocks.flatMap(l => List(l.start.y, l.end.y)).max
 

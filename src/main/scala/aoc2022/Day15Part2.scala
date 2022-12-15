@@ -5,14 +5,14 @@ object Day15Part2 {
     def pointsAround(): List[Point] = {
       List(
         Point(x, y),
-        Point(x-1, y),
-        Point(x-1, y-1),
-        Point(x, y-1),
-        Point(x+1, y-1),
-        Point(x+1, y),
-        Point(x+1,y+1),
-        Point(x, y+1),
-        Point(x-1, y+1)
+        Point(x - 1, y),
+        Point(x - 1, y - 1),
+        Point(x, y - 1),
+        Point(x + 1, y - 1),
+        Point(x + 1, y),
+        Point(x + 1, y + 1),
+        Point(x, y + 1),
+        Point(x - 1, y + 1)
       )
     }
   }
@@ -48,20 +48,32 @@ object Day15Part2 {
 
       val det = A1 * B2 - A2 * B1
       if (det == 0) {
-         None
+        None
       } else {
         val x = (B2 * C1 - B1 * C2) / det
         val y = (A1 * C2 - A2 * C1) / det
-        Option(Point(x,y))
+        Option(Point(x, y))
       }
     }
   }
   case class Area(point: Point, distance: Long) {
     val lines: List[Line] = List(
-      Line(Point(point.x - distance, point.y), Point(point.x, point.y - distance)),
-      Line(Point(point.x, point.y - distance), Point(point.x + distance, point.y)),
-      Line(Point(point.x + distance, point.y), Point(point.x, point.y + distance)),
-      Line(Point(point.x, point.y + distance), Point(point.x - distance, point.y))
+      Line(
+        Point(point.x - distance, point.y),
+        Point(point.x, point.y - distance)
+      ),
+      Line(
+        Point(point.x, point.y - distance),
+        Point(point.x + distance, point.y)
+      ),
+      Line(
+        Point(point.x + distance, point.y),
+        Point(point.x, point.y + distance)
+      ),
+      Line(
+        Point(point.x, point.y + distance),
+        Point(point.x - distance, point.y)
+      )
     )
     def intersectionPoints(area: Area): List[Point] = {
       val points = for {
@@ -84,19 +96,24 @@ object Day15Part2 {
 
   def main(args: Array[String]): Unit = {
     val searchTo = 4000000
-    val lineParse = """Sensor at x=(-?[0-9]+), y=(-?[0-9]+): closest beacon is at x=(-?[0-9]+), y=(-?[0-9]+)""".r
+    val lineParse =
+      """Sensor at x=(-?[0-9]+), y=(-?[0-9]+): closest beacon is at x=(-?[0-9]+), y=(-?[0-9]+)""".r
 
     println("Reading data")
-    val data = readFileToLines("src/main/resources/day15/input").map {
-      case lineParse(sx, sy, bx, by) =>
-        (Point(sx.toLong, sy.toLong), Point(bx.toLong, by.toLong))
-      case _ => throw new RuntimeException("invalid parse")
-    }.map {
-      case (sensor, beacon) => (sensor, beacon, manhattanDistance(sensor, beacon))
-    }.toList
+    val data = readFileToLines("src/main/resources/day15/input")
+      .map {
+        case lineParse(sx, sy, bx, by) =>
+          (Point(sx.toLong, sy.toLong), Point(bx.toLong, by.toLong))
+        case _ => throw new RuntimeException("invalid parse")
+      }
+      .map { case (sensor, beacon) =>
+        (sensor, beacon, manhattanDistance(sensor, beacon))
+      }
+      .toList
 
-
-    val areas = data.map { case (sensor, _, distance) => Area(sensor, distance) }
+    val areas = data.map { case (sensor, _, distance) =>
+      Area(sensor, distance)
+    }
     val numAreas = areas.size
 
     println(s"Found $numAreas areas")
@@ -108,15 +125,20 @@ object Day15Part2 {
 
     println(s"Found ${intersectionPoints.size} intersection points")
 
-    val pointsOfInterest = intersectionPoints.flatMap { point => point.pointsAround() }
+    val pointsOfInterest = intersectionPoints
+      .flatMap { point => point.pointsAround() }
       .filter { point =>
         point.x >= 0 && point.x <= searchTo && point.y >= 0 && point.y <= searchTo
-      }.toSet
+      }
+      .toSet
 
     println(s"Found ${pointsOfInterest.size} points of interest")
 
     val pointsLeft = pointsOfInterest.filter { point =>
-      val foundIn = areas.map { area => if (area.contains(point)) {1} else {0} }.sum
+      val foundIn = areas.map { area =>
+        if (area.contains(point)) { 1 }
+        else { 0 }
+      }.sum
       foundIn == 0
     }
 
@@ -125,6 +147,6 @@ object Day15Part2 {
 
     val finalPoint = pointsLeft.toList.head
 
-    println(s"Tuning frequency = ${finalPoint.x*4000000+finalPoint.y}")
+    println(s"Tuning frequency = ${finalPoint.x * 4000000 + finalPoint.y}")
   }
 }
