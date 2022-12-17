@@ -1,7 +1,5 @@
 package aoc2022
 
-import org.apache.commons.lang3.time.StopWatch
-
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import scala.collection.mutable
@@ -71,17 +69,13 @@ object Day17Part2 {
 
   trait RockShape {
     def encoded: String
-
     def width: Int
-
     def height: Int
   }
 
   case class FlatRock(encoded: String = "####............") extends RockShape {
     override def width: Int = 4
-
     override def height: Int = 1
-
     override def toString: String = getClass.getSimpleName
   }
 
@@ -122,7 +116,7 @@ object Day17Part2 {
   )
 
   case class FallingRock(shape: RockShape, location: Point) {
-    def toPoints(): Set[Point] = {
+    val points: Set[Point] = {
       val rows: List[String] = shape.encoded.grouped(4).toList
       rows.zipWithIndex.flatMap { case (encodedRow, rowNum) =>
         encodedRow.grouped(1).toList.zipWithIndex.flatMap { case (encodedDot, colNum) =>
@@ -135,7 +129,7 @@ object Day17Part2 {
     }
 
     def intersects(rock: FallingRock): Boolean = {
-      toPoints().intersect(rock.toPoints()).nonEmpty
+      points.intersect(rock.points).nonEmpty
     }
 
     def moveLeft: FallingRock = FallingRock(shape, Point(location.col - 1, location.row))
@@ -200,24 +194,29 @@ object Day17Part2 {
     }
   }
 
-  def parseInput(fileName: String): List[Jet] = {
+  def parseInput(fileName: String): Array[Jet] = {
     readFile(s"src/main/resources/day17/$fileName").trim.toCharArray.map {
       case '<' => LeftPush
       case '>' => RightPush
       case _ => throw new RuntimeException("invalid character")
-    }.toList
+    }
   }
 
-  def placeRock(room: TallRoom, jets: List[Jet], startingRock: FallingRock, startingMoveNum: Int, debug: Boolean): (FallingRock, Int) = {
+  def placeRock(room: TallRoom, jets: Array[Jet], startingRock: FallingRock, jetsIndex: Int, debug: Boolean): (FallingRock, Int) = {
     var rockCanMove = true
-    var moveNum = startingMoveNum
+    var currentJetsIndex = jetsIndex
     var movingRock: FallingRock = startingRock
     if (debug) {
       println("A new rock beings to fall")
       room.showItWith(movingRock)
     }
     while (rockCanMove) {
-      val jet = jets(moveNum % jets.size)
+
+      if (currentJetsIndex >= jets.length) {
+        currentJetsIndex = 0
+      }
+      val jet = jets(currentJetsIndex)
+      currentJetsIndex += 1
       if (debug) {
         println(s"Current jet: $jet")
       }
@@ -251,11 +250,9 @@ object Day17Part2 {
       } else {
         rockCanMove = false
       }
-
-      moveNum += 1
     }
 
-    (movingRock, moveNum)
+    (movingRock, currentJetsIndex)
   }
 
   def main(args: Array[String]): Unit = {
@@ -265,15 +262,14 @@ object Day17Part2 {
     val jets = parseInput("input")
     val room = new TallRoom(rocks = new PartitionBuffer(sep, map = new mutable.HashMap()))
 
-    var moveNum = 0
-
     var currentShapeIndex = 0
     var printCounter = 0
-    (0 until 1_000_000).foreach { rockNum =>
+    var jetsIndex = 0
+    (0 until 100_000).foreach { rockNum =>
       if (printCounter == 1000) {
         printCounter = 0
+        println(s"Rock number: $rockNum")
       }
-      println(s"Rock number: $rockNum")
       printCounter += 1
 
       if (currentShapeIndex == rockShapes.length) {
@@ -282,19 +278,20 @@ object Day17Part2 {
       val shape = rockShapes(currentShapeIndex)
       currentShapeIndex += 1
 
-      println(shape)
       val newSpawnPoint = room.nextSpawnPoint(shape)
       val rock = FallingRock(shape, newSpawnPoint)
-      val (placedRock, endingMoveNum) = placeRock(room, jets, rock, moveNum, debug = false)
-      moveNum = endingMoveNum
+      val (placedRock, endingJetsIndex) = placeRock(room, jets, rock, jetsIndex, debug = false)
+      jetsIndex = endingJetsIndex
       room.rocks.add(placedRock)
       //room.showIt()
     }
 
     println(s"Room height: ${room.height}")
-    assert(room.height == 3157)
 
     val durationSections = startTime.until(ZonedDateTime.now, ChronoUnit.SECONDS)
     println(s"Execution took $durationSections seconds")
+
+    val expectedHeight = 158114
+    assert(room.height == expectedHeight, s"Room height ${room.height} != $expectedHeight")
   }
 }
