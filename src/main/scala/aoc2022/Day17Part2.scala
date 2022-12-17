@@ -1,5 +1,9 @@
 package aoc2022
 
+import org.apache.commons.lang3.time.StopWatch
+
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -255,16 +259,22 @@ object Day17Part2 {
   }
 
   def main(args: Array[String]): Unit = {
-    val sep = 100
+    val startTime = ZonedDateTime.now
+
+    val sep = 25
     val jets = parseInput("input")
     val room = new TallRoom(rocks = new PartitionBuffer(sep, map = new mutable.HashMap()))
 
     var moveNum = 0
 
     var currentShapeIndex = 0
-
-    (0 until 2022).foreach { rockNum =>
+    var printCounter = 0
+    (0 until 1_000_000).foreach { rockNum =>
+      if (printCounter == 1000) {
+        printCounter = 0
+      }
       println(s"Rock number: $rockNum")
+      printCounter += 1
 
       if (currentShapeIndex == rockShapes.length) {
         currentShapeIndex = 0
@@ -283,5 +293,8 @@ object Day17Part2 {
 
     println(s"Room height: ${room.height}")
     assert(room.height == 3157)
+
+    val durationSections = startTime.until(ZonedDateTime.now, ChronoUnit.SECONDS)
+    println(s"Execution took $durationSections seconds")
   }
 }
