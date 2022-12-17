@@ -7,27 +7,27 @@ import scala.collection.mutable.ArrayBuffer
 
 object Day17Part2 {
   class PartitionBuffer(sep: Long,
-                        map: mutable.HashMap[Long, mutable.ArrayBuffer[Point]],
+                        map: mutable.HashMap[Long, Array[Boolean]],
                         private var maxRow: Long = 0) {
     def add(rock: FallingRock): Unit = {
       rock.points.foreach { point =>
-        val partition = getByPartition(point.row)
-        partition.addOne(point)
+        val partition: Array[Point] = getByPartition(point.row)
+        map(point.row)(point.col) = true
       }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
-    private def getByPartition(row: Long): mutable.ArrayBuffer[Point] = {
+    private def getByPartition(row: Long): Array[Point] = {
       map.getOrElse(row, {
-        val newBuffer = new ArrayBuffer[Point]()
+        val newBuffer = Array.fill(7)(false)
         map.put(row, newBuffer)
         newBuffer
-      })
+      }).zipWithIndex.flatMap { case (value, col) => if (value) { Option(Point(col, row)) } else { None } }
     }
 
-    def get(rock: FallingRock): Array[mutable.ArrayBuffer[Point]] = {
+    def get(rock: FallingRock): Array[Array[Point]] = {
       ((rock.lowestPoint - 1) to rock.highestPoint).map(getByPartition).toArray
     }
 
@@ -112,7 +112,7 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.height
 
-    def intersects(row: mutable.ArrayBuffer[Point]): Boolean = {
+    def intersects(row: Array[Point]): Boolean = {
       points.exists(point => row.contains(point))
     }
 
