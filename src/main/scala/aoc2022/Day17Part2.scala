@@ -267,8 +267,8 @@ object Day17Part2 {
     var currentShapeIndex = 0
     var printCounter = 0
     var jetsIndex = 0
-    (0 until 1_000_000).foreach { rockNum =>
-      if (printCounter == 10_000) {
+    (0 until 10_000_000).foreach { rockNum =>
+      if (printCounter == 100_000) {
         printCounter = 0
         println(s"Rock number: $rockNum")
       }
@@ -293,7 +293,7 @@ object Day17Part2 {
     val durationSections = startTime.until(ZonedDateTime.now, ChronoUnit.SECONDS)
     println(s"Execution took $durationSections seconds")
 
-    val expectedHeight = 1581424
+    val expectedHeight = 15814463
     assert(room.height == expectedHeight, s"Room height ${room.height} != $expectedHeight")
   }
 }
