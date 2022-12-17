@@ -26,8 +26,19 @@ object Day17Part2 {
       })
     }
 
-    def get(rock: FallingRock): Map[Long, Array[Boolean]] = {
-      ((rock.lowestPoint - 1) to rock.highestPoint).map(row => (row, getByPartition(row))).toMap
+    def get(rock: FallingRock): Array[(Long, Array[Boolean])] = {
+      val numRows = rock.highestPoint - (rock.lowestPoint - 1) + 1
+      val rows = Array.ofDim[(Long, Array[Boolean])](numRows.toInt)
+
+      var currentRow = rock.lowestPoint - 1
+      var currentIndex = 0
+      while(currentRow <= rock.highestPoint) {
+        rows(currentIndex) = (currentRow, getByPartition(currentRow))
+
+        currentRow += 1
+        currentIndex += 1
+      }
+      rows
     }
 
     def isEmpty: Boolean = map.isEmpty
