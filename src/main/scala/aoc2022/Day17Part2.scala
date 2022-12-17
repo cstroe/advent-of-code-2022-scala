@@ -11,24 +11,23 @@ object Day17Part2 {
                         private var maxRow: Long = 0) {
     def add(rock: FallingRock): Unit = {
       rock.points.foreach { point =>
-        val partition: Array[Point] = getByPartition(point.row)
-        map(point.row)(point.col) = true
+        getByPartition(point.row)(point.col) = true
       }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
-    private def getByPartition(row: Long): Array[Point] = {
+    private def getByPartition(row: Long): Array[Boolean] = {
       map.getOrElse(row, {
         val newBuffer = Array.fill(7)(false)
         map.put(row, newBuffer)
         newBuffer
-      }).zipWithIndex.flatMap { case (value, col) => if (value) { Option(Point(col, row)) } else { None } }
+      })
     }
 
-    def get(rock: FallingRock): Array[Array[Point]] = {
-      ((rock.lowestPoint - 1) to rock.highestPoint).map(getByPartition).toArray
+    def get(rock: FallingRock): Map[Long, Array[Boolean]] = {
+      ((rock.lowestPoint - 1) to rock.highestPoint).map(row => (row, getByPartition(row))).toMap
     }
 
     def isEmpty: Boolean = map.isEmpty
@@ -112,8 +111,8 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.height
 
-    def intersects(row: Array[Point]): Boolean = {
-      points.exists(point => row.contains(point))
+    def intersects(row: (Long, Array[Boolean])): Boolean = {
+      points.exists(point => point.row == row._1 && row._2(point.col))
     }
 
     def moveLeft: FallingRock = FallingRock(shape, Point(location.col - 1, location.row))
