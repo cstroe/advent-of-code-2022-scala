@@ -7,24 +7,27 @@ import scala.collection.mutable.ArrayBuffer
 
 object Day17Part2 {
   class PartitionBuffer(sep: Long,
-                        map: mutable.HashMap[Long, mutable.ArrayBuffer[FallingRock]],
+                        map: mutable.HashMap[Long, mutable.ArrayBuffer[Point]],
                         private var maxRow: Long = 0) {
     def add(rock: FallingRock): Unit = {
-      get(rock).foreach(row => row.addOne(rock))
+      rock.points.foreach { point =>
+        val partition = getByPartition(point.row)
+        partition.addOne(point)
+      }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
-    private def getByPartition(partition: Long): mutable.ArrayBuffer[FallingRock] = {
-      map.getOrElse(partition, {
-        val newBuffer = new ArrayBuffer[FallingRock]()
-        map.put(partition, newBuffer)
+    private def getByPartition(row: Long): mutable.ArrayBuffer[Point] = {
+      map.getOrElse(row, {
+        val newBuffer = new ArrayBuffer[Point]()
+        map.put(row, newBuffer)
         newBuffer
       })
     }
 
-    def get(rock: FallingRock): Array[mutable.ArrayBuffer[FallingRock]] = {
+    def get(rock: FallingRock): Array[mutable.ArrayBuffer[Point]] = {
       ((rock.lowestPoint - 1) to rock.highestPoint).map(getByPartition).toArray
     }
 
@@ -109,8 +112,8 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.height
 
-    def intersects(rock: FallingRock): Boolean = {
-      points.intersect(rock.points).nonEmpty
+    def intersects(row: mutable.ArrayBuffer[Point]): Boolean = {
+      points.exists(point => row.contains(point))
     }
 
     def moveLeft: FallingRock = FallingRock(shape, Point(location.col - 1, location.row))
@@ -120,7 +123,7 @@ object Day17Part2 {
     def moveDown: FallingRock = FallingRock(shape, Point(location.col, location.row - 1))
 
     private def checkForIntersection(room: TallRoom, newRock: FallingRock): Boolean = {
-      !room.rocks.get(newRock).exists(row => row.exists(rock => newRock.intersects(rock)))
+      !room.rocks.get(newRock).exists(row => newRock.intersects(row))
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
