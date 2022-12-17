@@ -7,19 +7,45 @@ object Day17Part2 {
   class PartitionBuffer(sep: Long,
                         map: mutable.HashMap[Long, mutable.ArrayBuffer[FallingRock]],
                         private var maxRow: Long = 0) {
+    private def computePartition(rock: FallingRock): Long = {
+      var row = rock.location.row
+      while (row % sep != 0) { row += 1 }
+      row
+    }
+
     def add(rock: FallingRock): Unit = {
-      get().addOne(rock)
+      get(rock).addOne(rock)
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
-    def get(): mutable.ArrayBuffer[FallingRock] = {
-      map.getOrElse(sep, {
+    private def getByPartition(partition: Long): mutable.ArrayBuffer[FallingRock] = {
+      map.getOrElse(partition, {
         val newBuffer = new ArrayBuffer[FallingRock]()
-        map.put(sep, newBuffer)
+        map.put(partition, newBuffer)
         newBuffer
       })
+    }
+
+    def get(rock: FallingRock): mutable.ArrayBuffer[FallingRock] = {
+      val partition = computePartition(rock)
+      getByPartition(partition)
+    }
+
+    def getBelow(rock: FallingRock): mutable.ArrayBuffer[FallingRock] = {
+      val partition = computePartition(rock)
+      if (partition > sep) {
+        val partitionBelow = partition - sep
+        getByPartition(partitionBelow)
+      } else {
+        getByPartition(partition)
+      }
+    }
+
+    def getAbove(rock: FallingRock): mutable.ArrayBuffer[FallingRock] = {
+      val partition = computePartition(rock) + sep
+      getByPartition(partition)
     }
 
     def isEmpty: Boolean = map.isEmpty
@@ -114,12 +140,18 @@ object Day17Part2 {
 
     def moveDown: FallingRock = FallingRock(shape, Point(location.col, location.row - 1))
 
+    private def checkForIntersection(room: TallRoom, newRock: FallingRock): Boolean = {
+      !room.rocks.get(newRock).exists(rock => newRock.intersects(rock)) &&
+        !room.rocks.getBelow(newRock).exists(rock => newRock.intersects(rock)) &&
+        !room.rocks.getAbove(newRock).exists(rock => newRock.intersects(rock))
+    }
+
     def canMoveLeft(room: TallRoom): Boolean = {
       val newRock = moveLeft
       if (newRock.location.col < 0) {
         false
       } else {
-        !room.rocks.get().exists(rock => newRock.intersects(rock))
+        checkForIntersection(room, newRock)
       }
     }
 
@@ -128,7 +160,7 @@ object Day17Part2 {
       if (newRock.location.col + newRock.shape.width > room.width) {
         false
       } else {
-        !room.rocks.get().exists(rock => newRock.intersects(rock))
+        checkForIntersection(room, newRock)
       }
     }
 
@@ -137,7 +169,7 @@ object Day17Part2 {
       if (newRock.location.row - (newRock.shape.height - 1) < 0) {
         false
       } else {
-        !room.rocks.get().exists(rock => newRock.intersects(rock))
+        checkForIntersection(room, newRock)
       }
     }
   }
