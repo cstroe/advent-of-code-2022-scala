@@ -95,18 +95,19 @@ object Day17Part2 {
     FlatRock(), CrossRock(), LRock(), TallRock(), BlockRock()
   )
 
-  case class FallingRock(shape: RockShape, location: Point) {
-    val points: Set[Point] = {
-      val rows: List[String] = shape.encoded.grouped(4).toList
-      rows.zipWithIndex.flatMap { case (encodedRow, rowNum) =>
-        encodedRow.grouped(1).toList.zipWithIndex.flatMap { case (encodedDot, colNum) =>
-          encodedDot match {
-            case "#" => Option(Point(location.col + colNum, location.row - rowNum))
-            case _ => None
-          }
+  def computePoints(shape: RockShape, location: Point): Set[Point] = {
+    val rows: List[String] = shape.encoded.grouped(4).toList
+    rows.zipWithIndex.flatMap { case (encodedRow, rowNum) =>
+      encodedRow.grouped(1).toList.zipWithIndex.flatMap { case (encodedDot, colNum) =>
+        encodedDot match {
+          case "#" => Option(Point(location.col + colNum, location.row - rowNum))
+          case _ => None
         }
-      }.toSet
-    }
+      }
+    }.toSet
+  }
+
+  case class FallingRock(shape: RockShape, location: Point, points: Set[Point]) {
 
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.height
@@ -115,11 +116,20 @@ object Day17Part2 {
       points.exists(point => point.row == row._1 && row._2(point.col))
     }
 
-    def moveLeft: FallingRock = FallingRock(shape, Point(location.col - 1, location.row))
+    def moveLeft: FallingRock = {
+      val newPoints: Set[Point] = points.map(p => Point(p.col - 1, p.row))
+      FallingRock(shape, Point(location.col - 1, location.row), newPoints)
+    }
 
-    def moveRight: FallingRock = FallingRock(shape, Point(location.col + 1, location.row))
+    def moveRight: FallingRock = {
+      val newPoints: Set[Point] = points.map(p => Point(p.col+1, p.row))
+      FallingRock(shape, Point(location.col + 1, location.row), newPoints)
+    }
 
-    def moveDown: FallingRock = FallingRock(shape, Point(location.col, location.row - 1))
+    def moveDown: FallingRock = {
+      val newPoints: Set[Point] = points.map(p => Point(p.col, p.row - 1))
+      FallingRock(shape, Point(location.col, location.row - 1), newPoints)
+    }
 
     private def checkForIntersection(room: TallRoom, newRock: FallingRock): Boolean = {
       !room.rocks.get(newRock).exists(row => newRock.intersects(row))
@@ -246,8 +256,8 @@ object Day17Part2 {
     var currentShapeIndex = 0
     var printCounter = 0
     var jetsIndex = 0
-    (0 until 100_000).foreach { rockNum =>
-      if (printCounter == 1000) {
+    (0 until 1_000_000).foreach { rockNum =>
+      if (printCounter == 10_000) {
         printCounter = 0
         println(s"Rock number: $rockNum")
       }
@@ -260,7 +270,7 @@ object Day17Part2 {
       currentShapeIndex += 1
 
       val newSpawnPoint = room.nextSpawnPoint(shape)
-      val rock = FallingRock(shape, newSpawnPoint)
+      val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint))
       val (placedRock, endingJetsIndex) = placeRock(room, jets, rock, jetsIndex, debug = false)
       jetsIndex = endingJetsIndex
       room.rocks.add(placedRock)
@@ -272,7 +282,7 @@ object Day17Part2 {
     val durationSections = startTime.until(ZonedDateTime.now, ChronoUnit.SECONDS)
     println(s"Execution took $durationSections seconds")
 
-    val expectedHeight = 158114
+    val expectedHeight = 1581424
     assert(room.height == expectedHeight, s"Room height ${room.height} != $expectedHeight")
   }
 }
