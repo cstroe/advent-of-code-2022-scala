@@ -80,109 +80,103 @@ object Day17Part2 {
   }
 
   sealed trait RockShape {
-    def encoded: String
+    def encoded: Array[Char]
     def width: Int
-    def height: Int
-  }
-
-  sealed case class FlatRock(encoded: String = "####............") extends RockShape {
-    override def width: Int = 4
-    override def height: Int = 1
+    def height: Int = encoded.length
     override def toString: String = getClass.getSimpleName
   }
 
-  sealed case class CrossRock(encoded: String = ".#..###..#......") extends RockShape {
-    override def width: Int = 3
+  // ####...
+  sealed case class FlatRock(encoded: Array[Char] = Array(0x78), width: Int = 4) extends RockShape
 
-    override def height: Int = 3
+  // .#..... 0x20
+  // ###.... 0x70
+  // .#..... 0x20
+  sealed case class CrossRock(encoded: Array[Char] = Array(0x20, 0x70, 0x20),
+                              width: Int = 3) extends RockShape
+  // ..#.... 0x10
+  // ..#.... 0x10
+  // ###.... 0x70
+  sealed case class LRock(encoded: Array[Char] = Array(0x70, 0x10, 0x10),
+                          width: Int = 3) extends RockShape
 
-    override def toString: String = getClass.getSimpleName
-  }
+  // #...... 0x40
+  // #...... 0x40
+  // #...... 0x40
+  // #...... 0x40
+  sealed case class TallRock(encoded: Array[Char] = Array(0x40, 0x40, 0x40, 0x40),
+                             width: Int = 1) extends RockShape
 
-  sealed case class LRock(encoded: String = "..#...#.###.....") extends RockShape {
-    override def width: Int = 3
-
-    override def height: Int = 3
-
-    override def toString: String = getClass.getSimpleName
-  }
-
-  sealed case class TallRock(encoded: String = "#...#...#...#...") extends RockShape {
-    override def width: Int = 1
-
-    override def height: Int = 4
-
-    override def toString: String = getClass.getSimpleName
-  }
-
-  sealed case class BlockRock(encoded: String = "##..##..........") extends RockShape {
-    override def width: Int = 2
-
-    override def height: Int = 2
-
-    override def toString: String = getClass.getSimpleName
-  }
+   // ##..... 0x60
+   // ##..... 0x60
+  sealed case class BlockRock(encoded: Array[Char] = Array(0x60, 0x60),
+                              width: Int = 2) extends RockShape
 
   val rockShapes: List[RockShape] = List(
     FlatRock(), CrossRock(), LRock(), TallRock(), BlockRock()
   )
 
+  val bitMasksWithColumn: Array[(Char, Int)] =
+    Array((0x40, 0), (0x20, 1), (0x10, 2), (0x08, 3), (0x04, 4), (0x02, 5), (0x01, 6))
+
   def computePoints(shape: RockShape, location: Point): Set[Point] = {
-    val rows: List[String] = shape.encoded.grouped(4).toList
-    rows.zipWithIndex.flatMap { case (encodedRow, rowNum) =>
-      encodedRow.grouped(1).toList.zipWithIndex.flatMap { case (encodedDot, colNum) =>
-        encodedDot match {
-          case "#" => Option(Point(location.col + colNum, location.row - rowNum))
-          case _ => None
+    shape.encoded
+      .map(_ >>> location.col)
+      .zipWithIndex.flatMap { case (pointsChar, rowOffset) =>
+        bitMasksWithColumn.flatMap { case (bitMask, col) =>
+          if ((pointsChar & bitMask) != 0) {
+            Option(Point(col, location.row - shape.height + rowOffset + 1))
+          } else {
+            None
+          }
         }
-      }
-    }.toSet
+      }.toSet
   }
 
   case class FallingRock(shape: RockShape, location: Point, points: Set[Point]) {
 
     val highestPoint: Long = location.row
-    val lowestPoint: Long = location.row - shape.height
+    val lowestPoint: Long = location.row - shape.encoded.length
 
     val bottomPoints: Array[Point] = shape match {
-      case FlatRock(_) =>
+      case FlatRock(_, _) =>
         Array.tabulate(4) { i => Point(location.col + i, location.row - 1) }
-      case CrossRock(_) =>
+      case CrossRock(_, _) =>
         Array.tabulate(3) { i =>
           if (i == 0 || i == 2) { Point(location.col + i, location.row - 2) }
           else { Point(location.col + i, location.row - 3) }
         }
-      case LRock(_) =>
+      case LRock(_, _) =>
         Array.tabulate(3) { i => Point(location.col + i, location.row - 3) }
-      case TallRock(_) =>
+      case TallRock(_, _) =>
         Array.tabulate(1) { _ => Point(location.col, location.row - 4) }
-      case BlockRock(_) =>
+      case BlockRock(_, _) =>
         Array.tabulate(2) { i => Point(location.col + i, location.row - 2) }
     }
 
     val bottomPointsArray: Array[Long] = shape match {
-      case FlatRock(_) =>
+      case FlatRock(_, _) =>
         Array(
           location.col, location.row - 1,
           location.col + 1, location.row - 1,
           location.col + 2, location.row - 1,
           location.col + 3, location.row - 1,
         )
-      case CrossRock(_) =>
+      case CrossRock(_, _) =>
         Array(
           location.col, location.row - 2,
           location.col + 1, location.row - 3,
           location.col + 2, location.row - 2,
         )
-      case LRock(_) =>
+      case LRock(_, _) =>
         Array(
           location.col, location.row - 3,
           location.col + 1, location.row - 3,
           location.col + 2, location.row - 3,
         )
-      case TallRock(_) =>
+      case TallRock(_, _) =>
         Array(location.col, location.row - 4)
-      case BlockRock(_) =>
+      case BlockRock(_, _) =>
         Array(
           location.col, location.row - 2,
           location.col + 1, location.row - 2,
@@ -190,28 +184,28 @@ object Day17Part2 {
     }
 
     val leftPoints: Array[Point] = shape match {
-      case FlatRock(_) =>
+      case FlatRock(_, _) =>
         Array.tabulate(1) { _ => Point(location.col - 1, location.row) }
-      case CrossRock(_) =>
+      case CrossRock(_, _) =>
         Array.tabulate(3) { i =>
           if (i == 0 || i == 2) { Point(location.col, location.row - i) }
           else { Point(location.col - 1, location.row - i) }
         }
-      case LRock(_) =>
+      case LRock(_, _) =>
         Array.tabulate(3) { i =>
           if (i < 2) { Point(location.col + 1, location.row - i) }
           else { Point(location.col - 1, location.row - i) }
         }
-      case TallRock(_) =>
+      case TallRock(_, _) =>
         Array.tabulate(4) { i => Point(location.col - 1, location.row - i) }
-      case BlockRock(_) =>
+      case BlockRock(_, _) =>
         Array.tabulate(2) { i => Point(location.col - 1, location.row - i) }
     }
 
     val rightPoints: Array[Point] = shape match {
-      case FlatRock(_) =>
+      case FlatRock(_, _) =>
         Array.tabulate(1) { _ => Point(location.col + 4, location.row) }
-      case CrossRock(_) =>
+      case CrossRock(_, _) =>
         Array.tabulate(3) { i =>
           if (i == 0 || i == 2) {
             Point(location.col + 2, location.row - i)
@@ -220,11 +214,11 @@ object Day17Part2 {
             Point(location.col + 3, location.row - i)
           }
         }
-      case LRock(_) =>
+      case LRock(_, _) =>
         Array.tabulate(3) { i => Point(location.col + 3, location.row - i) }
-      case TallRock(_) =>
+      case TallRock(_, _) =>
         Array.tabulate(4) { i => Point(location.col + 1, location.row - i) }
-      case BlockRock(_) =>
+      case BlockRock(_, _) =>
         Array.tabulate(2) { i => Point(location.col + 2, location.row - i) }
     }
 
@@ -285,7 +279,7 @@ object Day17Part2 {
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
-      if ((location.row - 1) - (shape.height - 1) < 0) {
+      if ((location.row - 1) - (shape.encoded.length - 1) < 0) {
         false
       } else {
         checkForIntersection(room, bottomPointsArray)
@@ -303,7 +297,7 @@ object Day17Part2 {
     def width: Int = 7
 
     def nextSpawnPoint(shape: RockShape): Point = {
-      Point(2, height + 3 + (shape.height - 1))
+      Point(2, height + 3 + (shape.encoded.length - 1))
     }
 
     def showIt(): Unit = {
