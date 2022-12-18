@@ -11,29 +11,29 @@ object Day17Part2 {
                         private var maxRow: Long = 0) {
     def add(rock: FallingRock): Unit = {
       rock.points.foreach { point =>
-        getByPartition(point.row)(point.col) = true
+        getByRowNum(point.row)(point.col) = true
       }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
-    private def getByPartition(row: Long): Array[Boolean] = {
-      map.getOrElse(row, {
+    def getByRowNum(rowNum: Long): Array[Boolean] = {
+      map.getOrElse(rowNum, {
         val newBuffer = Array.fill(7)(false)
-        map.put(row, newBuffer)
+        map.put(rowNum, newBuffer)
         newBuffer
       })
     }
 
     def get(rock: FallingRock): Array[(Long, Array[Boolean])] = {
-      val numRows = rock.highestPoint - (rock.lowestPoint - 1) + 1
+      val numRows = rock.highestPoint - rock.lowestPoint + 1
       val rows = Array.ofDim[(Long, Array[Boolean])](numRows.toInt)
 
-      var currentRow = rock.lowestPoint - 1
+      var currentRow = rock.lowestPoint
       var currentIndex = 0
       while(currentRow <= rock.highestPoint) {
-        rows(currentIndex) = (currentRow, getByPartition(currentRow))
+        rows(currentIndex) = (currentRow, getByRowNum(currentRow))
 
         currentRow += 1
         currentIndex += 1
@@ -264,15 +264,27 @@ object Day17Part2 {
     val jets = parseInput("input")
     val room = new TallRoom(rocks = new PartitionBuffer(sep, map = new mutable.HashMap()))
 
+    val rolloverAt = jets.length * rockShapes.length
+    println(s"Shapes and Jets roll over at: ${jets.length * rockShapes.length}")
+
     var currentShapeIndex = 0
-    var printCounter = 0
+    var rolloverCounter = 0
     var jetsIndex = 0
     (0 until 10_000_000).foreach { rockNum =>
-      if (printCounter == 100_000) {
-        printCounter = 0
-        println(s"Rock number: $rockNum")
+      if (rolloverCounter == rolloverAt) {
+        rolloverCounter = 0
+        println(s"Rolling over at: $rockNum")
+        ((room.height - 1) to (room.height - 5, -1)).foreach { rowNum =>
+          val row = room.rocks.getByRowNum(rowNum)
+          print("|")
+          (0 to 6).foreach { colNum =>
+            if (row(colNum)) { print("█") } else { print(".") }
+          }
+          println("|")
+        }
+        println("+-------+")
       }
-      printCounter += 1
+      rolloverCounter += 1
 
       if (currentShapeIndex == rockShapes.length) {
         currentShapeIndex = 0
@@ -285,6 +297,7 @@ object Day17Part2 {
       val (placedRock, endingJetsIndex) = placeRock(room, jets, rock, jetsIndex, debug = false)
       jetsIndex = endingJetsIndex
       room.rocks.add(placedRock)
+
       //room.showIt()
     }
 
