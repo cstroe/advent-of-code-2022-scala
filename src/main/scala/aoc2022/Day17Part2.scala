@@ -323,21 +323,15 @@ object Day17Part2 {
     }
   }
 
-  def placeRock(room: TallRoom, jets: Array[Jet], startingRock: FallingRock, jetsIndex: Int, debug: Boolean): (FallingRock, Int) = {
+  def placeRock(room: TallRoom, jetsIter: Iterator[Jet], startingRock: FallingRock, debug: Boolean): FallingRock = {
     var rockCanMove = true
-    var currentJetsIndex = jetsIndex
     var movingRock: FallingRock = startingRock
     if (debug) {
       println("A new rock beings to fall")
       room.showItWith(movingRock)
     }
     while (rockCanMove) {
-
-      if (currentJetsIndex >= jets.length) {
-        currentJetsIndex = 0
-      }
-      val jet = jets(currentJetsIndex)
-      currentJetsIndex += 1
+      val jet = jetsIter.next()
       if (debug) {
         println(s"Current jet: $jet")
       }
@@ -373,7 +367,7 @@ object Day17Part2 {
       }
     }
 
-    (movingRock, currentJetsIndex)
+    movingRock
   }
 
   def main(args: Array[String]): Unit = {
@@ -387,7 +381,13 @@ object Day17Part2 {
 
     var currentShapeIndex = 0
     var rolloverCounter = 0
-    var jetsIndex = 0
+
+    val jetsIter = Iterator.unfold(0) { i =>
+      if (i >= jets.length) {
+        Option((jets(0), 0))
+      } else { Option(jets(i), i+1) }
+    }
+
     (0 until 10_000_000).foreach { rockNum =>
       if (rolloverCounter == rolloverAt) {
         rolloverCounter = 0
@@ -412,8 +412,7 @@ object Day17Part2 {
 
       val newSpawnPoint = room.nextSpawnPoint(shape)
       val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint))
-      val (placedRock, endingJetsIndex) = placeRock(room, jets, rock, jetsIndex, debug = false)
-      jetsIndex = endingJetsIndex
+      val placedRock = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(placedRock)
 
       //room.showIt()
