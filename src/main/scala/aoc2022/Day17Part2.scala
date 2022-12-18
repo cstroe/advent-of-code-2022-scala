@@ -138,22 +138,6 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.encoded.length
 
-    val bottomPoints: Array[Point] = shape match {
-      case FlatRock(_, _) =>
-        Array.tabulate(4) { i => Point(location.col + i, location.row - 1) }
-      case CrossRock(_, _) =>
-        Array.tabulate(3) { i =>
-          if (i == 0 || i == 2) { Point(location.col + i, location.row - 2) }
-          else { Point(location.col + i, location.row - 3) }
-        }
-      case LRock(_, _) =>
-        Array.tabulate(3) { i => Point(location.col + i, location.row - 3) }
-      case TallRock(_, _) =>
-        Array.tabulate(1) { _ => Point(location.col, location.row - 4) }
-      case BlockRock(_, _) =>
-        Array.tabulate(2) { i => Point(location.col + i, location.row - 2) }
-    }
-
     val bottomPointsArray: Array[Long] = shape match {
       case FlatRock(_, _) =>
         Array(
@@ -373,8 +357,13 @@ object Day17Part2 {
     val rolloverAt = jets.length * rockShapes.length
     println(s"Shapes and Jets roll over at: ${jets.length * rockShapes.length}")
 
-    var currentShapeIndex = 0
     var rolloverCounter = 0
+
+    val shapesIter = Iterator.unfold(0) { i =>
+      if (i >= rockShapes.length) {
+        Option(rockShapes.head, 1)
+      } else { Option(rockShapes(i), i+1)}
+    }
 
     val jetsIter = Iterator.unfold(0) { i =>
       if (i >= jets.length) {
@@ -398,18 +387,11 @@ object Day17Part2 {
       }
       rolloverCounter += 1
 
-      if (currentShapeIndex == rockShapes.length) {
-        currentShapeIndex = 0
-      }
-      val shape = rockShapes(currentShapeIndex)
-      currentShapeIndex += 1
-
+      val shape = shapesIter.next()
       val newSpawnPoint = room.nextSpawnPoint(shape)
       val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint))
       val placedRock = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(placedRock)
-
-      //room.showIt()
     }
 
     println(s"Room height: ${room.height}")
