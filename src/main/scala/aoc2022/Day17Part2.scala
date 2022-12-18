@@ -384,7 +384,7 @@ object Day17Part2 {
 
     val jetsIter = Iterator.unfold(0) { i =>
       if (i >= jets.length) {
-        Option((jets(0), 0))
+        Option((jets(0), 1))
       } else { Option(jets(i), i+1) }
     }
 
