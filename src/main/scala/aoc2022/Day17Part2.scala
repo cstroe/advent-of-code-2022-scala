@@ -2,28 +2,47 @@ package aoc2022
 
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 object Day17Part2 {
-  class PartitionBuffer(sep: Long,
-                        map: mutable.HashMap[Long, Array[Boolean]],
-                        private var maxRow: Long = 0) {
+  class RockStore(var store: Array[Char] = Array.fill(32768)(0),
+                  private var maxRow: Long = -1L,
+                  private var currentLowIndex: Long = 0L) {
     def add(rock: FallingRock): Unit = {
       rock.points.foreach { point =>
-        getByRowNum(point.row)(point.col) = true
+        val rowNum = point.row
+        val arrayIndex = (rowNum - currentLowIndex).toInt
+        if (arrayIndex >= store.length) { growArray() }
+        val chr: Char = store(arrayIndex)
+        val newChr: Char = ((0x1 << point.col) | chr).toChar
+        store(arrayIndex) = newChr
       }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
       }
     }
 
+    private def growArray(): Unit = {
+      val newSize = store.length * 2
+      val newStore: Array[Char] = Array.fill(newSize)(0x0)
+      Array.copy(store, 0, newStore, 0, store.length)
+      store = newStore
+    }
+
     def getByRowNum(rowNum: Long): Array[Boolean] = {
-      map.getOrElse(rowNum, {
-        val newBuffer = Array.fill(7)(false)
-        map.put(rowNum, newBuffer)
-        newBuffer
-      })
+      val arrayIndex = (rowNum - currentLowIndex).toInt
+      val boolArr = Array.fill(7)(false)
+
+      if (arrayIndex < store.length) {
+        val char: Char = store(arrayIndex)
+
+        (0 to 6).foreach { i =>
+          if (((0x01 << i) & char) != 0x0) {
+            boolArr(i) = true
+          }
+        }
+      }
+
+      boolArr
     }
 
     def get(rock: FallingRock): Array[(Long, Array[Boolean])] = {
@@ -41,7 +60,7 @@ object Day17Part2 {
       rows
     }
 
-    def isEmpty: Boolean = map.isEmpty
+    def isEmpty: Boolean = maxRow == -1L
     def getMaxRow: Long = maxRow
   }
 
@@ -274,7 +293,7 @@ object Day17Part2 {
     }
   }
 
-  class TallRoom(val rocks: PartitionBuffer) {
+  class TallRoom(val rocks: RockStore) {
     def height: Long = if (rocks.isEmpty) {
       0
     } else {
@@ -360,9 +379,8 @@ object Day17Part2 {
   def main(args: Array[String]): Unit = {
     val startTime = ZonedDateTime.now
 
-    val sep = 25
     val jets = parseInput("input")
-    val room = new TallRoom(rocks = new PartitionBuffer(sep, map = new mutable.HashMap()))
+    val room = new TallRoom(rocks = new RockStore())
 
     val rolloverAt = jets.length * rockShapes.length
     println(s"Shapes and Jets roll over at: ${jets.length * rockShapes.length}")

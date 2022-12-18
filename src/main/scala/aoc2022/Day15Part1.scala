@@ -1,7 +1,22 @@
 package aoc2022
 
 object Day15Part1 {
-  case class Point(x: Long, y: Long)
+  case class Point(x: Long, y: Long) {
+    def pointsAround(): List[Point] = {
+      List(
+        Point(x, y),
+        Point(x - 1, y),
+        Point(x - 1, y - 1),
+        Point(x, y - 1),
+        Point(x + 1, y - 1),
+        Point(x + 1, y),
+        Point(x + 1, y + 1),
+        Point(x, y + 1),
+        Point(x - 1, y + 1)
+      )
+    }
+  }
+
   def manhattanDistance(start: Point, other: Point): Long = {
     Math.abs(start.x - other.x) + Math.abs(start.y - other.y)
   }

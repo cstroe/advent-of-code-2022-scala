@@ -1,21 +1,8 @@
 package aoc2022
 
+import aoc2022.Day15Part1.{Point, manhattanDistance}
+
 object Day15Part2 {
-  case class Point(x: Long, y: Long) {
-    def pointsAround(): List[Point] = {
-      List(
-        Point(x, y),
-        Point(x - 1, y),
-        Point(x - 1, y - 1),
-        Point(x, y - 1),
-        Point(x + 1, y - 1),
-        Point(x + 1, y),
-        Point(x + 1, y + 1),
-        Point(x, y + 1),
-        Point(x - 1, y + 1)
-      )
-    }
-  }
   case class Coefficients(A: Long, B: Long, C: Long)
   case class Line(start: Point, end: Point) {
     val coefficients: Coefficients = {
@@ -84,10 +71,6 @@ object Day15Part2 {
     }
 
     def contains(test: Point): Boolean = isWithinPoint(test, point, distance)
-  }
-
-  def manhattanDistance(start: Point, other: Point): Long = {
-    Math.abs(start.x - other.x) + Math.abs(start.y - other.y)
   }
 
   def isWithinPoint(test: Point, sensor: Point, distance: Long): Boolean = {
