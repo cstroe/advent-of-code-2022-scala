@@ -141,6 +141,25 @@ object Day17Part2 {
         Array.tabulate(2) { i => Point(location.col + i, location.row - 2) }
     }
 
+    val leftPoints: Array[Point] = shape match {
+      case FlatRock(_) =>
+        Array.tabulate(1) { _ => Point(location.col - 1, location.row) }
+      case CrossRock(_) =>
+        Array.tabulate(3) { i =>
+          if (i == 0 || i == 2) { Point(location.col, location.row - i) }
+          else { Point(location.col - 1, location.row - i) }
+        }
+      case LRock(_) =>
+        Array.tabulate(3) { i =>
+          if (i < 2) { Point(location.col + 1, location.row - i) }
+          else { Point(location.col - 1, location.row - i) }
+        }
+      case TallRock(_) =>
+        Array.tabulate(4) { i => Point(location.col - 1, location.row - i) }
+      case BlockRock(_) =>
+        Array.tabulate(2) { i => Point(location.col - 1, location.row - i) }
+    }
+
     def intersects(row: (Long, Array[Boolean])): Boolean = {
       points.exists(point => point.row == row._1 && row._2(point.col))
     }
@@ -169,11 +188,10 @@ object Day17Part2 {
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
-      val newRock = moveLeft
-      if (newRock.location.col < 0) {
+      if (location.col - 1 < 0) {
         false
       } else {
-        checkForIntersection(room, newRock)
+        checkForIntersection(room, leftPoints)
       }
     }
 
