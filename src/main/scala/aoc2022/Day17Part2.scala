@@ -56,21 +56,23 @@ object Day17Part2 {
     override def toString: String = ">"
   }
 
-  case class Point(col: Int, row: Long)
+  case class Point(col: Int, row: Long) {
+    //lazy val down: Point = Point(col, row - 1)
+  }
 
-  trait RockShape {
+  sealed trait RockShape {
     def encoded: String
     def width: Int
     def height: Int
   }
 
-  case class FlatRock(encoded: String = "####............") extends RockShape {
+  sealed case class FlatRock(encoded: String = "####............") extends RockShape {
     override def width: Int = 4
     override def height: Int = 1
     override def toString: String = getClass.getSimpleName
   }
 
-  case class CrossRock(encoded: String = ".#..###..#......") extends RockShape {
+  sealed case class CrossRock(encoded: String = ".#..###..#......") extends RockShape {
     override def width: Int = 3
 
     override def height: Int = 3
@@ -78,7 +80,7 @@ object Day17Part2 {
     override def toString: String = getClass.getSimpleName
   }
 
-  case class LRock(encoded: String = "..#...#.###.....") extends RockShape {
+  sealed case class LRock(encoded: String = "..#...#.###.....") extends RockShape {
     override def width: Int = 3
 
     override def height: Int = 3
@@ -86,7 +88,7 @@ object Day17Part2 {
     override def toString: String = getClass.getSimpleName
   }
 
-  case class TallRock(encoded: String = "#...#...#...#...") extends RockShape {
+  sealed case class TallRock(encoded: String = "#...#...#...#...") extends RockShape {
     override def width: Int = 1
 
     override def height: Int = 4
@@ -94,7 +96,7 @@ object Day17Part2 {
     override def toString: String = getClass.getSimpleName
   }
 
-  case class BlockRock(encoded: String = "##..##..........") extends RockShape {
+  sealed case class BlockRock(encoded: String = "##..##..........") extends RockShape {
     override def width: Int = 2
 
     override def height: Int = 2
@@ -123,6 +125,22 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.height
 
+    val bottomPoints: Array[Point] = shape match {
+      case FlatRock(_) =>
+        Array.tabulate(4) { i => Point(location.col + i, location.row - 1) }
+      case CrossRock(_) =>
+        Array.tabulate(3) { i =>
+          if (i == 0 || i == 2) { Point(location.col + i, location.row - 2) }
+          else { Point(location.col + i, location.row - 3) }
+        }
+      case LRock(_) =>
+        Array.tabulate(3) { i => Point(location.col + i, location.row - 3) }
+      case TallRock(_) =>
+        Array.tabulate(1) { _ => Point(location.col, location.row - 4) }
+      case BlockRock(_) =>
+        Array.tabulate(2) { i => Point(location.col + i, location.row - 2) }
+    }
+
     def intersects(row: (Long, Array[Boolean])): Boolean = {
       points.exists(point => point.row == row._1 && row._2(point.col))
     }
@@ -146,6 +164,10 @@ object Day17Part2 {
       !room.rocks.get(newRock).exists(row => newRock.intersects(row))
     }
 
+    private def checkForIntersection(room: TallRoom, points: Array[Point]): Boolean = {
+      !points.exists(p => room.rocks.getByRowNum(p.row)(p.col))
+    }
+
     def canMoveLeft(room: TallRoom): Boolean = {
       val newRock = moveLeft
       if (newRock.location.col < 0) {
@@ -165,11 +187,10 @@ object Day17Part2 {
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
-      val newRock = moveDown
-      if (newRock.location.row - (newRock.shape.height - 1) < 0) {
+      if ((location.row - 1) - (shape.height - 1) < 0) {
         false
       } else {
-        checkForIntersection(room, newRock)
+        checkForIntersection(room, bottomPoints)
       }
     }
   }
