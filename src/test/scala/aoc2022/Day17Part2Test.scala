@@ -1,6 +1,6 @@
 package aoc2022
 
-import aoc2022.Day17Part2.{CrossRock, FallingRock, FlatRock, Point, RockShape, RockStore, computeChars, computePoints, findHeight, parseInput, rockShapes}
+import aoc2022.Day17Part2.{CrossRock, FallingRock, FlatRock, Point, RockShape, RockStore, TallRoom, computeChars, computePoints, findHeight, parseInput, rockShapes}
 import org.junit.Test
 import org.junit.Assert.{assertArrayEquals, assertFalse, assertTrue}
 
@@ -41,6 +41,16 @@ class Day17Part2Test {
   }
 
   @Test
+  def rockStoreAddingARockIsCorrectlyEncoded(): Unit = {
+    val rockstore = new RockStore()
+
+    // 0 ####...
+    //   0123456
+    rockstore.add(newFlatRock(0, 0))
+    assertTrue(rockstore.getCharByRowNum(0) == 0x78)
+  }
+
+  @Test
   def rockStoreGrowsWhenAdding(): Unit = {
     val rockstore = new RockStore()
     rockstore.add(newFlatRock(0, 32768))
@@ -75,5 +85,23 @@ class Day17Part2Test {
     val height = findHeight(jets, 2022)
     val expectedHeight = 3157
     assertTrue(s"Height should be $expectedHeight, but it is $height", height == expectedHeight)
+  }
+
+  @Test
+  def moveDownCheckIsCorrect(): Unit = {
+    val room = new TallRoom(new RockStore())
+    val flatRock = newFlatRock(0, 0)
+    assertFalse(flatRock.canMoveDown(room))
+    room.rocks.add(flatRock)
+    assertFalse(newCrossRock(0, 3).canMoveDown(room))
+    assertTrue(newCrossRock(3, 3).canMoveDown(room))
+  }
+
+  @Test
+  def moveDownCheckWithOldOne(): Unit = {
+    val room = new TallRoom(new RockStore())
+    val flatRock = newFlatRock(0, 0)
+    assertFalse(flatRock.canMoveDown(room))
+    room.rocks.add(flatRock)
   }
 }

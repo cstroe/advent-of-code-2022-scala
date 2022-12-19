@@ -12,8 +12,9 @@ object Day17Part2 {
         val rowNum = point.row
         val arrayIndex = (rowNum - currentLowIndex).toInt
         if (arrayIndex >= store.length) { growArray() }
-        val chr: Char = store(arrayIndex)
-        val newChr: Char = ((0x1 << point.col) | chr).toChar
+        val existingChar = store(arrayIndex)
+        val maskByte: Char = ((0x40) >>> point.col).toChar
+        val newChr: Char = (maskByte | existingChar).toChar
         store(arrayIndex) = newChr
       }
       if (rock.location.row > maxRow) {
@@ -42,7 +43,7 @@ object Day17Part2 {
         val char: Char = store(arrayIndex)
 
         (0 to 6).foreach { i =>
-          if (((0x01 << i) & char) != 0x0) {
+          if (((0x40 >>> i) & char) != 0x0) {
             boolArr(i) = true
           }
         }
@@ -149,78 +150,6 @@ object Day17Part2 {
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.encoded.length
 
-    val bottomPointsArray: Array[Long] = shape match {
-      case FlatRock(_, _) =>
-        Array(
-          location.col, location.row - 1,
-          location.col + 1, location.row - 1,
-          location.col + 2, location.row - 1,
-          location.col + 3, location.row - 1,
-        )
-      case CrossRock(_, _) =>
-        Array(
-          location.col, location.row - 2,
-          location.col + 1, location.row - 3,
-          location.col + 2, location.row - 2,
-        )
-      case LRock(_, _) =>
-        Array(
-          location.col, location.row - 3,
-          location.col + 1, location.row - 3,
-          location.col + 2, location.row - 3,
-        )
-      case TallRock(_, _) =>
-        Array(location.col, location.row - 4)
-      case BlockRock(_, _) =>
-        Array(
-          location.col, location.row - 2,
-          location.col + 1, location.row - 2,
-        )
-    }
-
-    val leftPoints: Array[Point] = shape match {
-      case FlatRock(_, _) =>
-        Array.tabulate(1) { _ => Point(location.col - 1, location.row) }
-      case CrossRock(_, _) =>
-        Array.tabulate(3) { i =>
-          if (i == 0 || i == 2) { Point(location.col, location.row - i) }
-          else { Point(location.col - 1, location.row - i) }
-        }
-      case LRock(_, _) =>
-        Array.tabulate(3) { i =>
-          if (i < 2) { Point(location.col + 1, location.row - i) }
-          else { Point(location.col - 1, location.row - i) }
-        }
-      case TallRock(_, _) =>
-        Array.tabulate(4) { i => Point(location.col - 1, location.row - i) }
-      case BlockRock(_, _) =>
-        Array.tabulate(2) { i => Point(location.col - 1, location.row - i) }
-    }
-
-    val rightPoints: Array[Point] = shape match {
-      case FlatRock(_, _) =>
-        Array.tabulate(1) { _ => Point(location.col + 4, location.row) }
-      case CrossRock(_, _) =>
-        Array.tabulate(3) { i =>
-          if (i == 0 || i == 2) {
-            Point(location.col + 2, location.row - i)
-          }
-          else {
-            Point(location.col + 3, location.row - i)
-          }
-        }
-      case LRock(_, _) =>
-        Array.tabulate(3) { i => Point(location.col + 3, location.row - i) }
-      case TallRock(_, _) =>
-        Array.tabulate(4) { i => Point(location.col + 1, location.row - i) }
-      case BlockRock(_, _) =>
-        Array.tabulate(2) { i => Point(location.col + 2, location.row - i) }
-    }
-
-    def intersects(row: (Long, Array[Boolean])): Boolean = {
-      points.exists(point => point.row == row._1 && row._2(point.col))
-    }
-
     def moveLeft: FallingRock = {
       val newPoints: Set[Point] = points.map(p => Point(p.col - 1, p.row))
       val newChars: Array[Char] = chars.map(_ << 1).map(_.toChar)
@@ -238,63 +167,32 @@ object Day17Part2 {
       FallingRock(shape, Point(location.col, location.row - 1), newPoints, chars)
     }
 
-    private def checkForIntersection(room: TallRoom, newRock: FallingRock): Boolean = {
-      !room.rocks.get(newRock).exists(row => newRock.intersects(row))
-    }
-
-    private def checkForIntersection(room: TallRoom, points: Array[Point]): Boolean = {
-      !points.exists(p => room.rocks.getByRowNum(p.row)(p.col))
-    }
-
-    private def convertToString(char: Char): String = {
-      bitMasksWithColumn.map { case (bitMask, _) =>
-        if ((char & bitMask) == 0) { "." } else { "█" }
-      }.mkString("")
-    }
-
-    private def isValidMove(room: TallRoom, location: Point, chars: Array[Char]): Boolean = {
-      val topRow = location.row.toInt
-      val bottomRow = (location.row - chars.length + 1).toInt
+    private def isValidMove(room: TallRoom, newLocation: Point, chars: Array[Char]): Boolean = {
+      val topRow = newLocation.row.toInt
+      val bottomRow = (newLocation.row - chars.length + 1).toInt
       val comparisons = (bottomRow to topRow)
         .map(room.rocks.getCharByRowNum)
         .zipWithIndex
         .map { case (rowChar, i) => (rowChar, chars(i)) }
       val retVal = comparisons.exists { case (rowChar, rockChar) =>
-        val debug = s"|${convertToString(rowChar)}|<>|${convertToString(rockChar)}|"
-        println(debug)
-        val check = (rowChar & rockChar) != 0x0
-        check
+        (rowChar & rockChar) != 0x0
       }
       !retVal
-    }
-
-
-    private def isValidMove(room: TallRoom, points: Array[Long]): Boolean = {
-      var currentIndex = 0
-      var foundIntersection = false
-      while (!foundIntersection && currentIndex < points.length) {
-        val col = points(currentIndex).toInt
-        val row = points(currentIndex+1)
-        foundIntersection = room.rocks.getByRowNum(row)(col)
-        currentIndex += 2
-      }
-      !foundIntersection
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
       if (location.col - 1 < 0) {
         false
       } else {
-        checkForIntersection(room, leftPoints)
+        isValidMove(room, Point(location.col - 1, location.row), chars.map(c => (c << 1).toChar))
       }
     }
 
     def canMoveRight(room: TallRoom): Boolean = {
-      val newRock = moveRight
-      if (newRock.location.col + newRock.shape.width > room.width) {
+      if (location.col + 1 + shape.width > room.width) {
         false
       } else {
-        checkForIntersection(room, rightPoints)
+        isValidMove(room, Point(location.col + 1, location.row), chars.map(c => (c >> 1).toChar))
       }
     }
 
@@ -302,13 +200,7 @@ object Day17Part2 {
       if ((location.row - 1) - (shape.height - 1) < 0) {
         false
       } else {
-        //val newCheck = isValidMove(room, Point(location.col, location.row - 1), chars)
-        val oldCheck = isValidMove(room, bottomPointsArray)
-        //if (newCheck != oldCheck) {
-          //isValidMove(room, Point(location.col, location.row - 1), chars)
-          //throw new RuntimeException("new isValidMove is wrong")
-        //}
-        oldCheck
+        isValidMove(room, Point(location.col, location.row - 1), chars)
       }
     }
   }
