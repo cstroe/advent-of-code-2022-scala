@@ -67,12 +67,8 @@ object Day17Part2 {
 
   // ####...
   sealed case class FlatRock(encoded: Array[Char] = Array(0x78), width: Int = 4) extends RockShape {
-    val charsAtCol: Array[Array[Char]] = Array(
-      computeChars(encoded, 0),
-      computeChars(encoded, 1),
-      computeChars(encoded, 2),
-      computeChars(encoded, 3),
-    )
+    val charsAtCol: Array[Array[Char]] =
+      (0 to 3).map(computeChars(encoded, _)).toArray
 
     override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
   }
@@ -82,13 +78,8 @@ object Day17Part2 {
   // .#..... 0x20
   sealed case class CrossRock(encoded: Array[Char] = Array(0x20, 0x70, 0x20),
                               width: Int = 3) extends RockShape {
-    val charsAtCol: Array[Array[Char]] = Array(
-      computeChars(encoded, 0),
-      computeChars(encoded, 1),
-      computeChars(encoded, 2),
-      computeChars(encoded, 3),
-      computeChars(encoded, 4),
-    )
+    val charsAtCol: Array[Array[Char]] =
+      (0 to 4).map(computeChars(encoded, _)).toArray
 
     override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
   }
@@ -97,13 +88,8 @@ object Day17Part2 {
   // ###.... 0x70
   sealed case class LRock(encoded: Array[Char] = Array(0x70, 0x10, 0x10),
                           width: Int = 3) extends RockShape {
-    val charsAtCol: Array[Array[Char]] = Array(
-      computeChars(encoded, 0),
-      computeChars(encoded, 1),
-      computeChars(encoded, 2),
-      computeChars(encoded, 3),
-      computeChars(encoded, 4),
-    )
+    val charsAtCol: Array[Array[Char]] =
+      (0 to 4).map(computeChars(encoded, _)).toArray
 
     override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
   }
@@ -114,15 +100,8 @@ object Day17Part2 {
   // #...... 0x40
   sealed case class TallRock(encoded: Array[Char] = Array(0x40, 0x40, 0x40, 0x40),
                              width: Int = 1) extends RockShape {
-    val charsAtCol: Array[Array[Char]] = Array(
-      computeChars(encoded, 0),
-      computeChars(encoded, 1),
-      computeChars(encoded, 2),
-      computeChars(encoded, 3),
-      computeChars(encoded, 4),
-      computeChars(encoded, 5),
-      computeChars(encoded, 6),
-    )
+    val charsAtCol: Array[Array[Char]] =
+      (0 to 6).map(computeChars(encoded, _)).toArray
 
     override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
   }
@@ -131,14 +110,8 @@ object Day17Part2 {
    // ##..... 0x60
   sealed case class BlockRock(encoded: Array[Char] = Array(0x60, 0x60),
                               width: Int = 2) extends RockShape {
-     val charsAtCol: Array[Array[Char]] = Array(
-       computeChars(encoded, 0),
-       computeChars(encoded, 1),
-       computeChars(encoded, 2),
-       computeChars(encoded, 3),
-       computeChars(encoded, 4),
-       computeChars(encoded, 5),
-     )
+     val charsAtCol: Array[Array[Char]] =
+       (0 to 5).map(computeChars(encoded, _)).toArray
 
      override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
    }
@@ -151,9 +124,9 @@ object Day17Part2 {
     blueprint.map(_ >>> col).map(_.toChar)
 
   class FallingRock(var shape: RockShape, var row: Long, var col: Int, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
-    def moveLeft(leftChars: Array[Char]): Unit = {
+    def moveLeft(): Unit = {
       col -= 1
-      chars = leftChars
+      chars = shape.getCharsAtCol(col)
 
       var acc = 0x0
       var i = 0
@@ -164,9 +137,9 @@ object Day17Part2 {
       hitsLeftSide = acc != 0x0
       hitsRightSide = false
     }
-    def moveRight(newChars: Array[Char]): Unit = {
+    def moveRight(): Unit = {
       col += 1
-      chars = newChars
+      chars = shape.getCharsAtCol(col)
       var acc = 0x0
       var i = 0
       while (i < chars.length) {
@@ -231,25 +204,12 @@ object Day17Part2 {
       val jet = jetsIter.next()
 
       if (jet == LeftPush) {
-        val newLeftChars = rock.chars.clone()
-        var i = 0
-        while (i < newLeftChars.length) {
-          newLeftChars(i) = (newLeftChars(i) << 1).toChar
-          i += 1
-        }
-
-        if (!rock.hitsLeftSide && rock.isValidMove(room, rock.row, newLeftChars)) {
-          rock.moveLeft(newLeftChars)
+        if (rock.col - 1 >= 0 && rock.isValidMove(room, rock.row, rock.shape.getCharsAtCol(rock.col - 1))) {
+          rock.moveLeft()
         }
       } else {
-        val newChars = rock.chars.clone()
-        var i = 0
-        while (i < newChars.length) {
-          newChars(i) = (newChars(i) >> 1).toChar
-          i += 1
-        }
-        if (!rock.hitsRightSide && rock.isValidMove(room, rock.row, newChars)) {
-          rock.moveRight(newChars)
+        if (rock.shape.width + rock.col <= 6 && rock.isValidMove(room, rock.row, rock.shape.getCharsAtCol(rock.col + 1))) {
+          rock.moveRight()
         }
       }
 
