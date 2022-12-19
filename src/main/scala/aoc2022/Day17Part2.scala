@@ -97,9 +97,30 @@ object Day17Part2 {
   def computeChars(shape: RockShape, col: Int): Array[Char] =
     shape.encoded.map(_ >>> col).map(_.toChar)
 
-  class FallingRock(var shape: RockShape, var row: Long, var chars: Array[Char]) {
-    def moveLeft(): Unit = { chars = chars.map(_ << 1).map(_.toChar) }
-    def moveRight(): Unit = { chars = chars.map(_ >>> 1).map(_.toChar) }
+  class FallingRock(var shape: RockShape, var row: Long, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
+    def moveLeft(): Unit = {
+      chars = chars.map(_ << 1).map(_.toChar)
+
+      var acc = 0x0
+      var i = 0
+      while(i < chars.length) {
+        acc = (chars(i) & 0x40) | acc
+        i += 1
+      }
+      hitsLeftSide = acc != 0x0
+      hitsRightSide = false
+    }
+    def moveRight(): Unit = {
+      chars = chars.map(_ >>> 1).map(_.toChar)
+      var acc = 0x0
+      var i = 0
+      while (i < chars.length) {
+        acc = (chars(i) & 0x01) | acc
+        i += 1
+      }
+      hitsRightSide = acc != 0x0
+      hitsLeftSide = false
+    }
     def moveDown(): Unit = { row -= 1 }
 
     private def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
@@ -121,19 +142,11 @@ object Day17Part2 {
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
-      if (chars.exists(c => (c & 0x40) != 0)) {
-        false
-      } else {
-        isValidMove(room, row, chars.map(c => (c << 1).toChar))
-      }
+      !hitsLeftSide && isValidMove(room, row, chars.map(c => (c << 1).toChar))
     }
 
     def canMoveRight(room: TallRoom): Boolean = {
-      if (chars.exists(c => (c & 0x01) != 0)) {
-        false
-      } else {
-        isValidMove(room, row, chars.map(c => (c >> 1).toChar))
-      }
+      !hitsRightSide && isValidMove(room, row, chars.map(c => (c >> 1).toChar))
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
@@ -212,6 +225,8 @@ object Day17Part2 {
       rock.shape = shapesIter.next()
       rock.row = room.nextSpawnRow(rock.shape)
       rock.chars = computeChars(rock.shape, 2)
+      rock.hitsRightSide = false
+      rock.hitsLeftSide = false
       placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(rock)
       currentIter += 1
