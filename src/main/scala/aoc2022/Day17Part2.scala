@@ -61,44 +61,98 @@ object Day17Part2 {
     def encoded: Array[Char]
     def width: Int
     def height: Int = encoded.length
+    def getCharsAtCol(col: Int): Array[Char]
     override def toString: String = getClass.getSimpleName
   }
 
   // ####...
-  sealed case class FlatRock(encoded: Array[Char] = Array(0x78), width: Int = 4) extends RockShape
+  sealed case class FlatRock(encoded: Array[Char] = Array(0x78), width: Int = 4) extends RockShape {
+    val charsAtCol: Array[Array[Char]] = Array(
+      computeChars(encoded, 0),
+      computeChars(encoded, 1),
+      computeChars(encoded, 2),
+      computeChars(encoded, 3),
+    )
+
+    override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
+  }
 
   // .#..... 0x20
   // ###.... 0x70
   // .#..... 0x20
   sealed case class CrossRock(encoded: Array[Char] = Array(0x20, 0x70, 0x20),
-                              width: Int = 3) extends RockShape
+                              width: Int = 3) extends RockShape {
+    val charsAtCol: Array[Array[Char]] = Array(
+      computeChars(encoded, 0),
+      computeChars(encoded, 1),
+      computeChars(encoded, 2),
+      computeChars(encoded, 3),
+      computeChars(encoded, 4),
+    )
+
+    override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
+  }
   // ..#.... 0x10
   // ..#.... 0x10
   // ###.... 0x70
   sealed case class LRock(encoded: Array[Char] = Array(0x70, 0x10, 0x10),
-                          width: Int = 3) extends RockShape
+                          width: Int = 3) extends RockShape {
+    val charsAtCol: Array[Array[Char]] = Array(
+      computeChars(encoded, 0),
+      computeChars(encoded, 1),
+      computeChars(encoded, 2),
+      computeChars(encoded, 3),
+      computeChars(encoded, 4),
+    )
+
+    override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
+  }
 
   // #...... 0x40
   // #...... 0x40
   // #...... 0x40
   // #...... 0x40
   sealed case class TallRock(encoded: Array[Char] = Array(0x40, 0x40, 0x40, 0x40),
-                             width: Int = 1) extends RockShape
+                             width: Int = 1) extends RockShape {
+    val charsAtCol: Array[Array[Char]] = Array(
+      computeChars(encoded, 0),
+      computeChars(encoded, 1),
+      computeChars(encoded, 2),
+      computeChars(encoded, 3),
+      computeChars(encoded, 4),
+      computeChars(encoded, 5),
+      computeChars(encoded, 6),
+    )
+
+    override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
+  }
 
    // ##..... 0x60
    // ##..... 0x60
   sealed case class BlockRock(encoded: Array[Char] = Array(0x60, 0x60),
-                              width: Int = 2) extends RockShape
+                              width: Int = 2) extends RockShape {
+     val charsAtCol: Array[Array[Char]] = Array(
+       computeChars(encoded, 0),
+       computeChars(encoded, 1),
+       computeChars(encoded, 2),
+       computeChars(encoded, 3),
+       computeChars(encoded, 4),
+       computeChars(encoded, 5),
+     )
+
+     override def getCharsAtCol(col: Int): Array[Char] = charsAtCol(col)
+   }
 
   val rockShapes: List[RockShape] = List(
     FlatRock(), CrossRock(), LRock(), TallRock(), BlockRock()
   )
 
-  def computeChars(shape: RockShape, col: Int): Array[Char] =
-    shape.encoded.map(_ >>> col).map(_.toChar)
+  def computeChars(blueprint: Array[Char], col: Int): Array[Char] =
+    blueprint.map(_ >>> col).map(_.toChar)
 
-  class FallingRock(var shape: RockShape, var row: Long, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
+  class FallingRock(var shape: RockShape, var row: Long, var col: Int, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
     def moveLeft(leftChars: Array[Char]): Unit = {
+      col -= 1
       chars = leftChars
 
       var acc = 0x0
@@ -111,6 +165,7 @@ object Day17Part2 {
       hitsRightSide = false
     }
     def moveRight(newChars: Array[Char]): Unit = {
+      col += 1
       chars = newChars
       var acc = 0x0
       var i = 0
@@ -228,12 +283,13 @@ object Day17Part2 {
     val printIter = Iterator.unfold(0) { i => Option(if (i == 100_000) { (0, 1) } else { (i, i+1) }) }
 
     var currentIter = 0L
-    val rock = new FallingRock(FlatRock(), 0, Array.empty) // this object will be mutated
+    val rock = new FallingRock(FlatRock(), 0, 2, Array.empty) // this object will be mutated
     while(currentIter < iterations) {
       if (printIter.next() == 0) { println(currentIter) }
       rock.shape = shapesIter.next()
       rock.row = room.nextSpawnRow(rock.shape)
-      rock.chars = computeChars(rock.shape, 2)
+      rock.col = 2
+      rock.chars = computeChars(rock.shape.encoded, 2)
       rock.hitsRightSide = false
       rock.hitsLeftSide = false
       placeRock(room, jetsIter, rock, debug = false)
