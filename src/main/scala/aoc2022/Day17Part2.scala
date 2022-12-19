@@ -8,16 +8,21 @@ object Day17Part2 {
                   private var maxRow: Long = -1L,
                   private var currentLowIndex: Long = 0L) {
     def add(rock: FallingRock): Unit = {
-      val topRow = rock.row
       val bottomRow = rock.row - rock.chars.length + 1
-      (bottomRow to topRow).zipWithIndex.foreach { case (rowNum, i) =>
-        val storeArrayIndex = (rowNum - currentLowIndex).toInt
+
+      var i = 0
+      while(i < rock.chars.length) {
+        val currentRow = bottomRow + i
+        val storeArrayIndex = (currentRow - currentLowIndex).toInt
         if (storeArrayIndex >= store.length) { growArray() }
         val existingChar = store(storeArrayIndex)
         val maskByte: Char = rock.chars(i)
         val newChr: Char = (maskByte | existingChar).toChar
         store(storeArrayIndex) = newChr
+
+        i += 1
       }
+
       if (rock.row > maxRow) {
         maxRow = rock.row
       }
@@ -27,6 +32,7 @@ object Day17Part2 {
       val newSize = store.length * 2
       val newStore: Array[Char] = Array.fill(newSize)(0x0)
       Array.copy(store, 0, newStore, 0, store.length)
+      println(s"Array grew to ${newStore.length}")
       store = newStore
     }
 
@@ -97,21 +103,19 @@ object Day17Part2 {
     def moveDown(): Unit = { row -= 1 }
 
     private def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
-      val topRow = row.toInt
       val bottomRow = (row - chars.length + 1).toInt
 
-      var currentRow = bottomRow
-      var currentIndex = 0
+      var i = 0
       var retVal = true
-      while(retVal && currentRow <= topRow) {
+      while(retVal && i < chars.length) {
+        val currentRow = bottomRow + i
         val rowChar = room.rocks.getCharByRowNum(currentRow)
-        val rockChar = chars(currentIndex)
+        val rockChar = chars(i)
         if ((rowChar & rockChar) != 0x0) {
           retVal = false
         }
 
-        currentRow += 1
-        currentIndex += 1
+        i += 1
       }
       retVal
     }
