@@ -1,6 +1,6 @@
 package aoc2022
 
-import aoc2022.Day17Part2.{CrossRock, FallingRock, FlatRock, Point, RockShape, RockStore, TallRoom, computeChars, findHeight, parseInput, rockShapes}
+import aoc2022.Day17Part2.{CrossRock, FallingRock, FlatRock, RockShape, RockStore, TallRoom, computeChars, findHeight, parseInput, rockShapes}
 import org.junit.Test
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertFalse, assertTrue}
 
@@ -8,13 +8,12 @@ import org.junit.Assert.{assertArrayEquals, assertEquals, assertFalse, assertTru
 class Day17Part2Test {
   def newFlatRock(col: Int, row: Long): FallingRock = {
     val shape = FlatRock()
-    val location = Point(col, row)
-    new FallingRock(shape, col, row, computeChars(shape, col))
+    new FallingRock(shape, row, computeChars(shape, col))
   }
 
   def newCrossRock(col: Int, row: Long): FallingRock = {
     val shape = CrossRock()
-    new FallingRock(shape, col, row, computeChars(shape, col))
+    new FallingRock(shape, row, computeChars(shape, col))
   }
 
   def strToArray(row: String): Array[Boolean] = row.toCharArray.map {

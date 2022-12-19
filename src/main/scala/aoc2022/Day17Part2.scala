@@ -91,20 +91,10 @@ object Day17Part2 {
   def computeChars(shape: RockShape, col: Int): Array[Char] =
     shape.encoded.map(_ >>> col).map(_.toChar)
 
-  class FallingRock(val shape: RockShape, val col: Int, val row: Long, val chars: Array[Char]) {
-    def moveLeft: FallingRock = {
-      val newChars: Array[Char] = chars.map(_ << 1).map(_.toChar)
-      new FallingRock(shape, col - 1, row, newChars)
-    }
-
-    def moveRight: FallingRock = {
-      val newChars: Array[Char] = chars.map(_ >>> 1).map(_.toChar)
-      new FallingRock(shape, col + 1, row, newChars)
-    }
-
-    def moveDown: FallingRock = {
-      new FallingRock(shape, col, row - 1, chars)
-    }
+  class FallingRock(var shape: RockShape, var row: Long, var chars: Array[Char]) {
+    def moveLeft(): Unit = { chars = chars.map(_ << 1).map(_.toChar) }
+    def moveRight(): Unit = { chars = chars.map(_ >>> 1).map(_.toChar) }
+    def moveDown(): Unit = { row -= 1 }
 
     private def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
       val topRow = row.toInt
@@ -120,7 +110,7 @@ object Day17Part2 {
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
-      if (col - 1 < 0) {
+      if (chars.exists(c => (c & 0x40) != 0)) {
         false
       } else {
         isValidMove(room, row, chars.map(c => (c << 1).toChar))
@@ -128,7 +118,7 @@ object Day17Part2 {
     }
 
     def canMoveRight(room: TallRoom): Boolean = {
-      if (col + 1 + shape.width > room.width) {
+      if (chars.exists(c => (c & 0x01) != 0)) {
         false
       } else {
         isValidMove(room, row, chars.map(c => (c >> 1).toChar))
@@ -164,26 +154,23 @@ object Day17Part2 {
     }
   }
 
-  def placeRock(room: TallRoom, jetsIter: Iterator[Jet], startingRock: FallingRock, debug: Boolean): FallingRock = {
+  def placeRock(room: TallRoom, jetsIter: Iterator[Jet], rock: FallingRock, debug: Boolean): Unit = {
     var rockCanMove = true
-    var movingRock: FallingRock = startingRock
     while (rockCanMove) {
       val jet = jetsIter.next()
-      if (jet == LeftPush && movingRock.canMoveLeft(room)) {
-        movingRock = movingRock.moveLeft
+      if (jet == LeftPush && rock.canMoveLeft(room)) {
+        rock.moveLeft()
       }
-      if (jet == RightPush && movingRock.canMoveRight(room)) {
-        movingRock = movingRock.moveRight
+      if (jet == RightPush && rock.canMoveRight(room)) {
+        rock.moveRight()
       }
 
-      if (movingRock.canMoveDown(room)) {
-        movingRock = movingRock.moveDown
+      if (rock.canMoveDown(room)) {
+        rock.moveDown()
       } else {
         rockCanMove = false
       }
     }
-
-    movingRock
   }
 
   def findHeight(jets: Array[Jet], iterations: Long): Long = {
@@ -206,12 +193,13 @@ object Day17Part2 {
     }
 
     var currentIter = 0L
+    val rock = new FallingRock(FlatRock(), 0, Array.empty) // this object will be mutated
     while(currentIter < iterations) {
-      val shape = shapesIter.next()
-      val newSpawnRow = room.nextSpawnRow(shape)
-      val rock = new FallingRock(shape, 2, newSpawnRow, computeChars(shape, 2))
-      val placedRock = placeRock(room, jetsIter, rock, debug = false)
-      room.rocks.add(placedRock)
+      rock.shape = shapesIter.next()
+      rock.row = room.nextSpawnRow(rock.shape)
+      rock.chars = computeChars(rock.shape, 2)
+      placeRock(room, jetsIter, rock, debug = false)
+      room.rocks.add(rock)
       currentIter += 1
     }
 
