@@ -142,11 +142,23 @@ object Day17Part2 {
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
-      !hitsLeftSide && isValidMove(room, row, chars.map(c => (c << 1).toChar))
+      val newChars = chars.clone()
+      var i = 0
+      while (i < newChars.length) {
+        newChars(i) = (newChars(i) << 1).toChar
+        i += 1
+      }
+      !hitsLeftSide && isValidMove(room, row, newChars)
     }
 
     def canMoveRight(room: TallRoom): Boolean = {
-      !hitsRightSide && isValidMove(room, row, chars.map(c => (c >> 1).toChar))
+      val newChars = chars.clone()
+      var i = 0
+      while(i < newChars.length) {
+        newChars(i) = (newChars(i) >> 1).toChar
+        i += 1
+      }
+      !hitsRightSide && isValidMove(room, row, newChars)
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
