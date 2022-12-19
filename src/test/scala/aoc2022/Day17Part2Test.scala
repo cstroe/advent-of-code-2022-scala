@@ -9,13 +9,12 @@ class Day17Part2Test {
   def newFlatRock(col: Int, row: Long): FallingRock = {
     val shape = FlatRock()
     val location = Point(col, row)
-    FallingRock(shape, location, computeChars(shape, location))
+    new FallingRock(shape, col, row, computeChars(shape, col))
   }
 
   def newCrossRock(col: Int, row: Long): FallingRock = {
     val shape = CrossRock()
-    val location = Point(col, row)
-    FallingRock(shape, location, computeChars(shape, location))
+    new FallingRock(shape, col, row, computeChars(shape, col))
   }
 
   def strToArray(row: String): Array[Boolean] = row.toCharArray.map {
