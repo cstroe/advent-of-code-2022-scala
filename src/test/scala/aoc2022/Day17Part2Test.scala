@@ -2,7 +2,7 @@ package aoc2022
 
 import aoc2022.Day17Part2.{CrossRock, FallingRock, FlatRock, Point, RockShape, RockStore, TallRoom, computeChars, findHeight, parseInput, rockShapes}
 import org.junit.Test
-import org.junit.Assert.{assertArrayEquals, assertFalse, assertTrue}
+import org.junit.Assert.{assertArrayEquals, assertEquals, assertFalse, assertTrue}
 
 
 class Day17Part2Test {
@@ -35,9 +35,9 @@ class Day17Part2Test {
 
     rocks.foreach(rockstore.add)
 
-    assertArrayEquals(strToArray("....#.."), rockstore.getByRowNum(2))
-    assertArrayEquals(strToArray("...###."), rockstore.getByRowNum(1))
-    assertArrayEquals(strToArray("#####.."), rockstore.getByRowNum(0))
+    assertEquals(rockstore.getCharByRowNum(2), 0x04.toChar)
+    assertEquals(rockstore.getCharByRowNum(1), 0x0e.toChar)
+    assertEquals(rockstore.getCharByRowNum(0), 0x7c)
   }
 
   @Test
@@ -54,13 +54,13 @@ class Day17Part2Test {
   def rockStoreGrowsWhenAdding(): Unit = {
     val rockstore = new RockStore()
     rockstore.add(newFlatRock(0, 32768))
-    assertArrayEquals(strToArray("####..."), rockstore.getByRowNum(32768))
+    assertEquals(0x78.toChar, rockstore.getCharByRowNum(32768))
   }
 
   @Test
   def rockStoreReturnsTallRows(): Unit = {
     val rockstore = new RockStore()
-    assertArrayEquals(strToArray("......."), rockstore.getByRowNum(32768))
+    assertEquals(0x00.toChar, rockstore.getCharByRowNum(32768))
   }
 
   @Test

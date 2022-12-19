@@ -36,38 +36,6 @@ object Day17Part2 {
       else { store(rowNum) }
     }
 
-    def getByRowNum(rowNum: Long): Array[Boolean] = {
-      val arrayIndex = (rowNum - currentLowIndex).toInt
-      val boolArr = Array.fill(7)(false)
-
-      if (arrayIndex < store.length) {
-        val char: Char = store(arrayIndex)
-
-        (0 to 6).foreach { i =>
-          if (((0x40 >>> i) & char) != 0x0) {
-            boolArr(i) = true
-          }
-        }
-      }
-
-      boolArr
-    }
-
-    def get(rock: FallingRock): Array[(Long, Array[Boolean])] = {
-      val numRows = rock.highestPoint - rock.lowestPoint + 1
-      val rows = Array.ofDim[(Long, Array[Boolean])](numRows.toInt)
-
-      var currentRow = rock.lowestPoint
-      var currentIndex = 0
-      while(currentRow <= rock.highestPoint) {
-        rows(currentIndex) = (currentRow, getByRowNum(currentRow))
-
-        currentRow += 1
-        currentIndex += 1
-      }
-      rows
-    }
-
     def isEmpty: Boolean = maxRow == -1L
     def getMaxRow: Long = maxRow
   }
@@ -231,23 +199,6 @@ object Day17Part2 {
     movingRock
   }
 
-  def printTopOfRoom(room: TallRoom, shapeNum: Long): Unit = {
-    println(s"Current shape number: $shapeNum")
-    ((room.height - 1) to (room.height - 5, -1)).filter(_ >= 0).foreach { rowNum =>
-      val row = room.rocks.getByRowNum(rowNum)
-      print("|")
-      (0 to 6).foreach { colNum =>
-        if (row(colNum)) {
-          print("█")
-        } else {
-          print(".")
-        }
-      }
-      println("|")
-    }
-    println("+-------+")
-  }
-
   def findHeight(jets: Array[Jet], iterations: Long): Long = {
     val room = new TallRoom(rocks = new RockStore())
 
@@ -273,7 +224,6 @@ object Day17Part2 {
 
     var currentIter = 0L
     while(currentIter < iterations) {
-      if (printIter.next() == 0) { printTopOfRoom(room, currentIter) }
       val shape = shapesIter.next()
       val newSpawnPoint = room.nextSpawnPoint(shape)
       val rock = FallingRock(shape, newSpawnPoint, computeChars(shape, newSpawnPoint))
