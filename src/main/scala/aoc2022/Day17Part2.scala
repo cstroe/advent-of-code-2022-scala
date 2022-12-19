@@ -28,6 +28,12 @@ object Day17Part2 {
       store = newStore
     }
 
+    def getCharByRowNum(rowNum: Int): Char = {
+      if (rowNum >= store.length) { 0x00 }
+      else if (rowNum < 0) { 0xFF }
+      else { store(rowNum) }
+    }
+
     def getByRowNum(rowNum: Long): Array[Boolean] = {
       val arrayIndex = (rowNum - currentLowIndex).toInt
       val boolArr = Array.fill(7)(false)
@@ -133,7 +139,12 @@ object Day17Part2 {
       }.toSet
   }
 
-  case class FallingRock(shape: RockShape, location: Point, points: Set[Point]) {
+  def computeChars(shape: RockShape, location: Point): Array[Char] = {
+    shape.encoded
+      .map(_ >>> location.col).map(_.toChar)
+  }
+
+  case class FallingRock(shape: RockShape, location: Point, points: Set[Point], chars: Array[Char]) {
 
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.encoded.length
@@ -212,17 +223,19 @@ object Day17Part2 {
 
     def moveLeft: FallingRock = {
       val newPoints: Set[Point] = points.map(p => Point(p.col - 1, p.row))
-      FallingRock(shape, Point(location.col - 1, location.row), newPoints)
+      val newChars: Array[Char] = chars.map(_ << 1).map(_.toChar)
+      FallingRock(shape, Point(location.col - 1, location.row), newPoints, newChars)
     }
 
     def moveRight: FallingRock = {
       val newPoints: Set[Point] = points.map(p => Point(p.col+1, p.row))
-      FallingRock(shape, Point(location.col + 1, location.row), newPoints)
+      val newChars: Array[Char] = chars.map(_ >>> 1).map(_.toChar)
+      FallingRock(shape, Point(location.col + 1, location.row), newPoints, newChars)
     }
 
     def moveDown: FallingRock = {
       val newPoints: Set[Point] = points.map(p => Point(p.col, p.row - 1))
-      FallingRock(shape, Point(location.col, location.row - 1), newPoints)
+      FallingRock(shape, Point(location.col, location.row - 1), newPoints, chars)
     }
 
     private def checkForIntersection(room: TallRoom, newRock: FallingRock): Boolean = {
@@ -233,7 +246,30 @@ object Day17Part2 {
       !points.exists(p => room.rocks.getByRowNum(p.row)(p.col))
     }
 
-    private def checkForIntersection(room: TallRoom, points: Array[Long]): Boolean = {
+    private def convertToString(char: Char): String = {
+      bitMasksWithColumn.map { case (bitMask, _) =>
+        if ((char & bitMask) == 0) { "." } else { "█" }
+      }.mkString("")
+    }
+
+    private def isValidMove(room: TallRoom, location: Point, chars: Array[Char]): Boolean = {
+      val topRow = location.row.toInt
+      val bottomRow = (location.row - chars.length + 1).toInt
+      val comparisons = (bottomRow to topRow)
+        .map(room.rocks.getCharByRowNum)
+        .zipWithIndex
+        .map { case (rowChar, i) => (rowChar, chars(i)) }
+      val retVal = comparisons.exists { case (rowChar, rockChar) =>
+        val debug = s"|${convertToString(rowChar)}|<>|${convertToString(rockChar)}|"
+        println(debug)
+        val check = (rowChar & rockChar) != 0x0
+        check
+      }
+      !retVal
+    }
+
+
+    private def isValidMove(room: TallRoom, points: Array[Long]): Boolean = {
       var currentIndex = 0
       var foundIntersection = false
       while (!foundIntersection && currentIndex < points.length) {
@@ -263,10 +299,16 @@ object Day17Part2 {
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
-      if ((location.row - 1) - (shape.encoded.length - 1) < 0) {
+      if ((location.row - 1) - (shape.height - 1) < 0) {
         false
       } else {
-        checkForIntersection(room, bottomPointsArray)
+        //val newCheck = isValidMove(room, Point(location.col, location.row - 1), chars)
+        val oldCheck = isValidMove(room, bottomPointsArray)
+        //if (newCheck != oldCheck) {
+          //isValidMove(room, Point(location.col, location.row - 1), chars)
+          //throw new RuntimeException("new isValidMove is wrong")
+        //}
+        oldCheck
       }
     }
   }
@@ -283,14 +325,6 @@ object Day17Part2 {
     def nextSpawnPoint(shape: RockShape): Point = {
       Point(2, height + 3 + (shape.encoded.length - 1))
     }
-
-    def showIt(): Unit = {
-      ???
-    }
-
-    def showItWith(rock: FallingRock): Unit = {
-      ???
-    }
   }
 
   def parseInput(fileName: String): Array[Jet] = {
@@ -304,42 +338,17 @@ object Day17Part2 {
   def placeRock(room: TallRoom, jetsIter: Iterator[Jet], startingRock: FallingRock, debug: Boolean): FallingRock = {
     var rockCanMove = true
     var movingRock: FallingRock = startingRock
-    if (debug) {
-      println("A new rock beings to fall")
-      room.showItWith(movingRock)
-    }
     while (rockCanMove) {
       val jet = jetsIter.next()
-      if (debug) {
-        println(s"Current jet: $jet")
-      }
       if (jet == LeftPush && movingRock.canMoveLeft(room)) {
-        if (debug) {
-          println("< (move left)")
-        }
         movingRock = movingRock.moveLeft
-        if (debug) {
-          room.showItWith(movingRock)
-        }
       }
       if (jet == RightPush && movingRock.canMoveRight(room)) {
-        if (debug) {
-          println("> (move right)")
-        }
         movingRock = movingRock.moveRight
-        if (debug) {
-          room.showItWith(movingRock)
-        }
       }
 
       if (movingRock.canMoveDown(room)) {
-        if (debug) {
-          println(". (move down)")
-        }
         movingRock = movingRock.moveDown
-        if (debug) {
-          room.showItWith(movingRock)
-        }
       } else {
         rockCanMove = false
       }
@@ -348,58 +357,69 @@ object Day17Part2 {
     movingRock
   }
 
-  def main(args: Array[String]): Unit = {
-    val startTime = ZonedDateTime.now
+  def printTopOfRoom(room: TallRoom, shapeNum: Long): Unit = {
+    println(s"Current shape number: $shapeNum")
+    ((room.height - 1) to (room.height - 5, -1)).filter(_ >= 0).foreach { rowNum =>
+      val row = room.rocks.getByRowNum(rowNum)
+      print("|")
+      (0 to 6).foreach { colNum =>
+        if (row(colNum)) {
+          print("█")
+        } else {
+          print(".")
+        }
+      }
+      println("|")
+    }
+    println("+-------+")
+  }
 
-    val jets = parseInput("input")
+  def findHeight(jets: Array[Jet], iterations: Long): Long = {
     val room = new TallRoom(rocks = new RockStore())
-
-    val rolloverAt = jets.length * rockShapes.length
-    println(s"Shapes and Jets roll over at: ${jets.length * rockShapes.length}")
-
-    var rolloverCounter = 0
 
     val shapesIter = Iterator.unfold(0) { i =>
       if (i >= rockShapes.length) {
         Option(rockShapes.head, 1)
-      } else { Option(rockShapes(i), i+1)}
+      } else {
+        Option(rockShapes(i), i + 1)
+      }
     }
 
     val jetsIter = Iterator.unfold(0) { i =>
       if (i >= jets.length) {
         Option((jets(0), 1))
-      } else { Option(jets(i), i+1) }
+      } else {
+        Option(jets(i), i + 1)
+      }
     }
 
-    (0 until 10_000_000).foreach { rockNum =>
-      if (rolloverCounter == rolloverAt) {
-        rolloverCounter = 0
-        println(s"Rolling over at: $rockNum")
-        ((room.height - 1) to (room.height - 5, -1)).foreach { rowNum =>
-          val row = room.rocks.getByRowNum(rowNum)
-          print("|")
-          (0 to 6).foreach { colNum =>
-            if (row(colNum)) { print("█") } else { print(".") }
-          }
-          println("|")
-        }
-        println("+-------+")
-      }
-      rolloverCounter += 1
+    val printIter = Iterator.unfold(0) { i => Option(
+      if (i == jets.length * rockShapes.length) { (0,1) } else { (i, i+1) }
+    )}
 
+    var currentIter = 0L
+    while(currentIter < iterations) {
+      if (printIter.next() == 0) { printTopOfRoom(room, currentIter) }
       val shape = shapesIter.next()
       val newSpawnPoint = room.nextSpawnPoint(shape)
-      val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint))
+      val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint), computeChars(shape, newSpawnPoint))
       val placedRock = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(placedRock)
+      currentIter += 1
     }
 
-    println(s"Room height: ${room.height}")
+    room.height
+  }
+
+  def main(args: Array[String]): Unit = {
+    val startTime = ZonedDateTime.now
+
+    val jets = parseInput("input")
+    val height = findHeight(jets, 10_000_000)
+
+    println(s"Room height: $height")
 
     val durationSections = startTime.until(ZonedDateTime.now, ChronoUnit.SECONDS)
     println(s"Execution took $durationSections seconds")
-
-    val expectedHeight = 15814463
-    assert(room.height == expectedHeight, s"Room height ${room.height} != $expectedHeight")
   }
 }
