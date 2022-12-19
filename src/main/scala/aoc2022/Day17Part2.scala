@@ -8,14 +8,15 @@ object Day17Part2 {
                   private var maxRow: Long = -1L,
                   private var currentLowIndex: Long = 0L) {
     def add(rock: FallingRock): Unit = {
-      rock.points.foreach { point =>
-        val rowNum = point.row
-        val arrayIndex = (rowNum - currentLowIndex).toInt
-        if (arrayIndex >= store.length) { growArray() }
-        val existingChar = store(arrayIndex)
-        val maskByte: Char = ((0x40) >>> point.col).toChar
+      val topRow = rock.location.row
+      val bottomRow = rock.location.row - rock.chars.length + 1
+      (bottomRow to topRow).zipWithIndex.foreach { case (rowNum, i) =>
+        val storeArrayIndex = (rowNum - currentLowIndex).toInt
+        if (storeArrayIndex >= store.length) { growArray() }
+        val existingChar = store(storeArrayIndex)
+        val maskByte: Char = rock.chars(i)
         val newChr: Char = (maskByte | existingChar).toChar
-        store(arrayIndex) = newChr
+        store(storeArrayIndex) = newChr
       }
       if (rock.location.row > maxRow) {
         maxRow = rock.location.row
@@ -82,9 +83,7 @@ object Day17Part2 {
     override def toString: String = ">"
   }
 
-  case class Point(col: Int, row: Long) {
-    //lazy val down: Point = Point(col, row - 1)
-  }
+  case class Point(col: Int, row: Long)
 
   sealed trait RockShape {
     def encoded: Array[Char]
@@ -126,45 +125,28 @@ object Day17Part2 {
   val bitMasksWithColumn: Array[(Char, Int)] =
     Array((0x40, 0), (0x20, 1), (0x10, 2), (0x08, 3), (0x04, 4), (0x02, 5), (0x01, 6))
 
-  def computePoints(shape: RockShape, location: Point): Set[Point] = {
-    shape.encoded
-      .map(_ >>> location.col)
-      .zipWithIndex.flatMap { case (pointsChar, rowOffset) =>
-        bitMasksWithColumn.flatMap { case (bitMask, col) =>
-          if ((pointsChar & bitMask) != 0) {
-            Option(Point(col, location.row - shape.height + rowOffset + 1))
-          } else {
-            None
-          }
-        }
-      }.toSet
-  }
-
   def computeChars(shape: RockShape, location: Point): Array[Char] = {
     shape.encoded
       .map(_ >>> location.col).map(_.toChar)
   }
 
-  case class FallingRock(shape: RockShape, location: Point, points: Set[Point], chars: Array[Char]) {
+  case class FallingRock(shape: RockShape, location: Point, chars: Array[Char]) {
 
     val highestPoint: Long = location.row
     val lowestPoint: Long = location.row - shape.encoded.length
 
     def moveLeft: FallingRock = {
-      val newPoints: Set[Point] = points.map(p => Point(p.col - 1, p.row))
       val newChars: Array[Char] = chars.map(_ << 1).map(_.toChar)
-      FallingRock(shape, Point(location.col - 1, location.row), newPoints, newChars)
+      FallingRock(shape, Point(location.col - 1, location.row), newChars)
     }
 
     def moveRight: FallingRock = {
-      val newPoints: Set[Point] = points.map(p => Point(p.col+1, p.row))
       val newChars: Array[Char] = chars.map(_ >>> 1).map(_.toChar)
-      FallingRock(shape, Point(location.col + 1, location.row), newPoints, newChars)
+      FallingRock(shape, Point(location.col + 1, location.row), newChars)
     }
 
     def moveDown: FallingRock = {
-      val newPoints: Set[Point] = points.map(p => Point(p.col, p.row - 1))
-      FallingRock(shape, Point(location.col, location.row - 1), newPoints, chars)
+      FallingRock(shape, Point(location.col, location.row - 1), chars)
     }
 
     private def isValidMove(room: TallRoom, newLocation: Point, chars: Array[Char]): Boolean = {
@@ -294,7 +276,7 @@ object Day17Part2 {
       if (printIter.next() == 0) { printTopOfRoom(room, currentIter) }
       val shape = shapesIter.next()
       val newSpawnPoint = room.nextSpawnPoint(shape)
-      val rock = FallingRock(shape, newSpawnPoint, computePoints(shape, newSpawnPoint), computeChars(shape, newSpawnPoint))
+      val rock = FallingRock(shape, newSpawnPoint, computeChars(shape, newSpawnPoint))
       val placedRock = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(placedRock)
       currentIter += 1
