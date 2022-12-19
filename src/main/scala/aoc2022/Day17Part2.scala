@@ -98,8 +98,8 @@ object Day17Part2 {
     shape.encoded.map(_ >>> col).map(_.toChar)
 
   class FallingRock(var shape: RockShape, var row: Long, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
-    def moveLeft(): Unit = {
-      chars = chars.map(_ << 1).map(_.toChar)
+    def moveLeft(leftChars: Array[Char]): Unit = {
+      chars = leftChars
 
       var acc = 0x0
       var i = 0
@@ -110,8 +110,8 @@ object Day17Part2 {
       hitsLeftSide = acc != 0x0
       hitsRightSide = false
     }
-    def moveRight(): Unit = {
-      chars = chars.map(_ >>> 1).map(_.toChar)
+    def moveRight(newChars: Array[Char]): Unit = {
+      chars = newChars
       var acc = 0x0
       var i = 0
       while (i < chars.length) {
@@ -123,7 +123,7 @@ object Day17Part2 {
     }
     def moveDown(): Unit = { row -= 1 }
 
-    private def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
+    def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
       val bottomRow = (row - chars.length + 1).toInt
 
       var i = 0
@@ -139,26 +139,6 @@ object Day17Part2 {
         i += 1
       }
       retVal
-    }
-
-    def canMoveLeft(room: TallRoom): Boolean = {
-      val newChars = chars.clone()
-      var i = 0
-      while (i < newChars.length) {
-        newChars(i) = (newChars(i) << 1).toChar
-        i += 1
-      }
-      !hitsLeftSide && isValidMove(room, row, newChars)
-    }
-
-    def canMoveRight(room: TallRoom): Boolean = {
-      val newChars = chars.clone()
-      var i = 0
-      while(i < newChars.length) {
-        newChars(i) = (newChars(i) >> 1).toChar
-        i += 1
-      }
-      !hitsRightSide && isValidMove(room, row, newChars)
     }
 
     def canMoveDown(room: TallRoom): Boolean = {
@@ -194,11 +174,28 @@ object Day17Part2 {
     var rockCanMove = true
     while (rockCanMove) {
       val jet = jetsIter.next()
-      if (jet == LeftPush && rock.canMoveLeft(room)) {
-        rock.moveLeft()
-      }
-      if (jet == RightPush && rock.canMoveRight(room)) {
-        rock.moveRight()
+
+      if (jet == LeftPush) {
+        val newLeftChars = rock.chars.clone()
+        var i = 0
+        while (i < newLeftChars.length) {
+          newLeftChars(i) = (newLeftChars(i) << 1).toChar
+          i += 1
+        }
+
+        if (!rock.hitsLeftSide && rock.isValidMove(room, rock.row, newLeftChars)) {
+          rock.moveLeft(newLeftChars)
+        }
+      } else {
+        val newChars = rock.chars.clone()
+        var i = 0
+        while (i < newChars.length) {
+          newChars(i) = (newChars(i) >> 1).toChar
+          i += 1
+        }
+        if (!rock.hitsRightSide && rock.isValidMove(room, rock.row, newChars)) {
+          rock.moveRight(newChars)
+        }
       }
 
       if (rock.canMoveDown(room)) {
