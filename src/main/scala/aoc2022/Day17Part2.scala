@@ -123,31 +123,14 @@ object Day17Part2 {
   def computeChars(blueprint: Array[Char], col: Int): Array[Char] =
     blueprint.map(_ >>> col).map(_.toChar)
 
-  class FallingRock(var shape: RockShape, var row: Long, var col: Int, var chars: Array[Char], var hitsLeftSide: Boolean = false, var hitsRightSide: Boolean = false) {
+  class FallingRock(var shape: RockShape, var row: Long, var col: Int, var chars: Array[Char]) {
     def moveLeft(): Unit = {
       col -= 1
       chars = shape.getCharsAtCol(col)
-
-      var acc = 0x0
-      var i = 0
-      while(i < chars.length) {
-        acc = (chars(i) & 0x40) | acc
-        i += 1
-      }
-      hitsLeftSide = acc != 0x0
-      hitsRightSide = false
     }
     def moveRight(): Unit = {
       col += 1
       chars = shape.getCharsAtCol(col)
-      var acc = 0x0
-      var i = 0
-      while (i < chars.length) {
-        acc = (chars(i) & 0x01) | acc
-        i += 1
-      }
-      hitsRightSide = acc != 0x0
-      hitsLeftSide = false
     }
     def moveDown(): Unit = { row -= 1 }
 
@@ -250,8 +233,6 @@ object Day17Part2 {
       rock.row = room.nextSpawnRow(rock.shape)
       rock.col = 2
       rock.chars = computeChars(rock.shape.encoded, 2)
-      rock.hitsRightSide = false
-      rock.hitsLeftSide = false
       placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(rock)
       currentIter += 1
