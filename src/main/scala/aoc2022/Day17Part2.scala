@@ -99,14 +99,21 @@ object Day17Part2 {
     private def isValidMove(room: TallRoom, row: Long, chars: Array[Char]): Boolean = {
       val topRow = row.toInt
       val bottomRow = (row - chars.length + 1).toInt
-      val comparisons = (bottomRow to topRow)
-        .map(room.rocks.getCharByRowNum)
-        .zipWithIndex
-        .map { case (rowChar, i) => (rowChar, chars(i)) }
-      val retVal = comparisons.exists { case (rowChar, rockChar) =>
-        (rowChar & rockChar) != 0x0
+
+      var currentRow = bottomRow
+      var currentIndex = 0
+      var retVal = true
+      while(retVal && currentRow <= topRow) {
+        val rowChar = room.rocks.getCharByRowNum(currentRow)
+        val rockChar = chars(currentIndex)
+        if ((rowChar & rockChar) != 0x0) {
+          retVal = false
+        }
+
+        currentRow += 1
+        currentIndex += 1
       }
-      !retVal
+      retVal
     }
 
     def canMoveLeft(room: TallRoom): Boolean = {
@@ -192,9 +199,12 @@ object Day17Part2 {
       }
     }
 
+    val printIter = Iterator.unfold(0) { i => Option(if (i == 100_000) { (0, 1) } else { (i, i+1) }) }
+
     var currentIter = 0L
     val rock = new FallingRock(FlatRock(), 0, Array.empty) // this object will be mutated
     while(currentIter < iterations) {
+      if (printIter.next() == 0) { println(currentIter) }
       rock.shape = shapesIter.next()
       rock.row = room.nextSpawnRow(rock.shape)
       rock.chars = computeChars(rock.shape, 2)
