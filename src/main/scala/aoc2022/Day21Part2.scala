@@ -83,7 +83,6 @@ object Day21Part2 {
   def main(args: Array[String]): Unit = {
     val input = readFile(s"src/main/resources/day21/input")
     val equations = parseInput(input)
-    val rootVal = solve("root", equations)
-    println(s"root = $rootVal")
+    print(solve("root", equations))
   }
 }
