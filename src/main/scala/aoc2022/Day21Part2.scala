@@ -1,23 +1,18 @@
 package aoc2022
 
-import scala.+:
-import scala.collection.mutable
-
 object Day21Part2 {
-
   case class Op(kind: String, value: Long)
 
-  sealed trait Equation {
-    def variable: String
+  sealed trait Expression {
+    def name: String
   }
-  sealed case class Simple(variable: String,
-                           leftSide: String,
-                           rightSide: String,
-                           operation: String) extends Equation
-  sealed case class Value(variable: String, value: Long) extends Equation {
-    override def toString: String = s"$variable = $value"
-  }
-  sealed case class Unknown(variable: String, ops: List[Op]) extends Equation
+  sealed case class Eq(name: String,
+                       leftSide: String,
+                       rightSide: String,
+                       operation: String) extends Expression
+
+  sealed case class Num(name: String, value: Long) extends Expression
+  sealed case class X(name: String, ops: List[Op]) extends Expression
 
   def performOps(ops: Seq[Op], v1: Long): Long = {
     ops.reverse.foldLeft(v1) { case (acc, op) =>
@@ -32,112 +27,63 @@ object Day21Part2 {
     }
   }
 
-  def solve(variable: String, eq: mutable.Map[String, Equation]): Equation = {
+  def solve(variable: String, eq: Map[String, Expression]): Expression = {
     eq(variable) match {
-      case Unknown(a, op) => Unknown(a, op)
-      case v: Value => v
-      case Simple(currVarName, leftSide, rightSide, operation) =>
+      case x: X => x
+      case v: Num => v
+      case Eq(eqResult, leftSide, rightSide, operation) =>
         operation match {
           case "*" =>
             (solve(leftSide, eq), solve(rightSide, eq)) match {
-              case (Unknown(unk, ops), Value(_, v1)) =>
-                Unknown(unk, ops :+ Op(">/", v1))
-              case (Value(_, v1), Unknown(unk, ops)) =>
-                Unknown(unk, ops :+ Op(">/", v1))
-              case (Value(_, v1), Value(_, v2)) =>
-                val value = Value(currVarName, v1 * v2)
-                println(value)
-                value
-              case _ =>
-                ???
+              case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op(">/", v1))
+              case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op(">/", v1))
+              case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 * v2)
             }
           case "-" =>
             (solve(leftSide, eq), solve(rightSide, eq)) match {
-              case (Unknown(unk, ops), Value(_, v1)) =>
-                Unknown(unk, ops :+ Op("+", v1))
-              case (Value(_, v1), Unknown(unk, ops)) =>
-                Unknown(unk, ops :+ Op("-<", v1))
-              case (Value(_, v1), Value(_, v2)) =>
-                val value = Value(currVarName, v1 - v2)
-                println(value)
-                value
-              case _ =>
-                ???
+              case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op("+", v1))
+              case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op("-<", v1))
+              case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 - v2)
             }
           case "/" =>
             (solve(leftSide, eq), solve(rightSide, eq)) match {
-              case (Unknown(unk, ops), Value(_, v1)) =>
-                Unknown(unk, ops :+ Op("*", v1))
-              case (Value(_, v1), Unknown(unk, ops)) =>
-                Unknown(unk, Op("/<", v1) +: ops)
-              case (Value(_, v1), Value(_, v2)) =>
-                val value = Value(currVarName, v1 / v2)
-                println(value)
-                value
-              case _ =>
-                ???
+              case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op("*", v1))
+              case (Num(_, v1), X(nx, ops)) => X(nx, Op("/<", v1) +: ops)
+              case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 / v2)
             }
           case "+" =>
             (solve(leftSide, eq), solve(rightSide, eq)) match {
-              case (Unknown(unk, ops), Value(_, v1)) =>
-                Unknown(unk, ops :+ Op(">-", v1))
-              case (Value(_, v1), Unknown(unk, ops)) =>
-                Unknown(unk, ops :+ Op(">-", v1))
-              case (Value(_, v1), Value(_, v2)) =>
-                val value = Value(currVarName, v1 + v2)
-                println(value)
-                value
-              case _ =>
-                ???
+              case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op(">-", v1))
+              case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op(">-", v1))
+              case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 + v2)
             }
           case "=" =>
             (solve(leftSide, eq), solve(rightSide, eq)) match {
-              case (Unknown(unk, ops), Value(_, v1)) =>
-                val value = performOps(ops, v1)
-                val resVal = Value(unk, value)
-                println(resVal)
-                resVal
-              case (Value(_, v1), Unknown(unk, ops)) =>
-                val value = performOps(ops, v1)
-                Value(unk, value)
-              case (Value(_, v1), Value(_, v2)) =>
-                ???
-              case _ =>
-                ???
+              case (X(nx, ops), Num(_, v1)) => Num(nx, performOps(ops, v1))
+              case (Num(_, v1), X(nx, ops)) => Num(nx, performOps(ops, v1))
             }
         }
     }
   }
 
-  def parseInput(input: String): Map[String, Equation] = {
+  def parseInput(input: String): Map[String, Expression] = {
     val ValuePattern = "([a-z]+): ([0-9]+)".r
     val SimplePattern = "([a-z]+): ([a-z]+) ([=*/\\-+]) ([a-z]+)".r
 
-    input.split("\n").filterNot(_.isBlank).map {
+    input.split("\n").map(_.trim).filterNot(_.isBlank).map {
       case ValuePattern(variableName, value) =>
-        if (variableName == "humn") {
-          Unknown(variableName, List.empty)
-        } else {
-          Value(variableName, value.toLong)
-        }
+        if (variableName == "humn") { X(variableName, List.empty) }
+        else { Num(variableName, value.toLong) }
       case SimplePattern(variableName, leftSide, operation, rightSide) =>
-        if (variableName == "root") {
-          Simple(variableName, leftSide, rightSide, "=")
-        } else {
-          Simple(variableName, leftSide, rightSide, operation)
-        }
-    }.map(eq => (eq.variable, eq)).toMap
+        if (variableName == "root") { Eq(variableName, leftSide, rightSide, "=") }
+        else { Eq(variableName, leftSide, rightSide, operation) }
+    }.map(eq => (eq.name, eq)).toMap
   }
 
   def main(args: Array[String]): Unit = {
     val input = readFile(s"src/main/resources/day21/input")
     val equations = parseInput(input)
-
-    equations.foreach(println)
-
-    val mutEq = mutable.HashMap.newBuilder[String, Equation]
-    mutEq.addAll(equations)
-    val rootVal = solve("root", mutEq.result())
+    val rootVal = solve("root", equations)
     println(s"root = $rootVal")
   }
 }

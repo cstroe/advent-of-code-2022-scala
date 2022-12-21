@@ -2,8 +2,9 @@ plugins {
   id 'scala'
   id 'eclipse'
   id 'idea'
-  // ScalaTest runner: https://github.com/maiflai/gradle-scalatest
-  id "com.github.maiflai.scalatest" version "0.31"
+  // disable this runner in favor of JUnit
+//  // ScalaTest runner: https://github.com/maiflai/gradle-scalatest
+//  id "com.github.maiflai.scalatest" version "0.31"
   // Spotless: https://github.com/diffplug/spotless
   id "com.diffplug.spotless" version "6.12.0"
   id 'application'
@@ -33,6 +34,14 @@ application {
   mainClass = 'aoc2022.Day12'
 }
 
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "started", "skipped", "failed"
+    exceptionFormat "full"
+  }
+}
+
 dependencies { 
   implementation "org.scala-lang:scala-library:${scalaVersion}.+"
   implementation "org.scala-lang:scala-reflect:${scalaVersion}.+"
@@ -42,5 +51,8 @@ dependencies {
   implementation "org.apache.commons:commons-lang3:3.12.0"
   testImplementation "org.scalatest:scalatest_${scalaVersion}:3.1.2"
   testImplementation "junit:junit:4.13"
+  // this dependency is required to run JUnit 4 tests with newer Gradle
+  // https://stackoverflow.com/a/70383698/1591777
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.8.2")
   testRuntimeOnly "com.vladsch.flexmark:flexmark-all:0.36.8"
 }
