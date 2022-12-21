@@ -4,35 +4,35 @@ import aoc2022.Day21Part2.{Num, parseInput, solve}
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-//noinspection AccessorLikeMethodIsUnit
+//noinspection AccessorLikeMethodIsUnit,TypeAnnotation
 class Day21Part2Test {
   @Test
   def canSolveSimpleAddition(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       aaaa: 11
       root: aaaa = bbbb
       bbbb: humn + cccc
       humn: 0
       cccc: 6
     """)
-    assertTrue(solve("root", input) == Num("humn", 5L))
+    assertTrue(solve("root") == Num("humn", 5L))
   }
 
   @Test
   def canSolveSimpleAddition2(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       aaaa: 11
       root: aaaa = bbbb
       bbbb: cccc + humn
       humn: 0
       cccc: 6
     """)
-    assertTrue(solve("root", input) == Num("humn", 5L))
+    assertTrue(solve("root") == Num("humn", 5L))
   }
 
   @Test
   def canSolveSimpleDivision(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       aaaa: 6
       root: aaaa = bbbb
       bbbb: humn / cccc
@@ -40,13 +40,13 @@ class Day21Part2Test {
       cccc: 6
     """)
     val expected = Num("humn", 36L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def canSolveSimpleDivision2(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       aaaa: 2
       root: aaaa = bbbb
       bbbb: cccc / humn
@@ -54,13 +54,13 @@ class Day21Part2Test {
       cccc: 12
     """)
     val expected = Num("humn", 6L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def canSolveSubtraction(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       root: aaaa + bbbb
       aaaa: 2
       bbbb: humn - cccc
@@ -69,13 +69,13 @@ class Day21Part2Test {
     """)
 
     val expected = Num("humn", 12L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def canSolveSubtraction2(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
         root: aaaa + bbbb
         aaaa: 3
         bbbb: cccc - humn
@@ -84,13 +84,13 @@ class Day21Part2Test {
     """)
 
     val expected = Num("humn", 7L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def canSolveSimpleMultiplication(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       root: aaaa = bbbb
       aaaa: 20
       bbbb: humn * cccc
@@ -99,13 +99,13 @@ class Day21Part2Test {
     """)
 
     val expected = Num("humn", 2L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def canSolveSimpleMultiplication2(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       root: aaaa = bbbb
       aaaa: 20
       bbbb: cccc * humn
@@ -114,13 +114,13 @@ class Day21Part2Test {
     """)
 
     val expected = Num("humn", 2L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 
   @Test
   def solvesTestInput(): Unit = {
-    val input = parseInput("""
+    implicit val input = parseInput("""
       root: pppw + sjmn
       dbpl: 5
       cczh: sllz + lgvd
@@ -139,7 +139,7 @@ class Day21Part2Test {
     """)
 
     val expected = Num("humn", 301L)
-    val actual = solve("root", input)
+    val actual = solve("root")
     assertTrue(s"$actual != $expected", actual == expected)
   }
 

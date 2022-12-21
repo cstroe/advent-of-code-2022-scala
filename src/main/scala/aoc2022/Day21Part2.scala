@@ -27,38 +27,38 @@ object Day21Part2 {
     }
   }
 
-  def solve(variable: String, eq: Map[String, Expression]): Expression = {
+  def solve(variable: String)(implicit eq: Map[String, Expression]): Expression = {
     eq(variable) match {
       case x: X => x
       case v: Num => v
       case Eq(eqResult, leftSide, rightSide, operation) =>
         operation match {
           case "*" =>
-            (solve(leftSide, eq), solve(rightSide, eq)) match {
+            (solve(leftSide), solve(rightSide)) match {
               case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op(">/", v1))
               case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op(">/", v1))
               case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 * v2)
             }
           case "-" =>
-            (solve(leftSide, eq), solve(rightSide, eq)) match {
+            (solve(leftSide), solve(rightSide)) match {
               case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op("+", v1))
               case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op("-<", v1))
               case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 - v2)
             }
           case "/" =>
-            (solve(leftSide, eq), solve(rightSide, eq)) match {
+            (solve(leftSide), solve(rightSide)) match {
               case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op("*", v1))
               case (Num(_, v1), X(nx, ops)) => X(nx, Op("/<", v1) +: ops)
               case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 / v2)
             }
           case "+" =>
-            (solve(leftSide, eq), solve(rightSide, eq)) match {
+            (solve(leftSide), solve(rightSide)) match {
               case (X(nx, ops), Num(_, v1)) => X(nx, ops :+ Op(">-", v1))
               case (Num(_, v1), X(nx, ops)) => X(nx, ops :+ Op(">-", v1))
               case (Num(_, v1), Num(_, v2)) => Num(eqResult, v1 + v2)
             }
           case "=" =>
-            (solve(leftSide, eq), solve(rightSide, eq)) match {
+            (solve(leftSide), solve(rightSide)) match {
               case (X(nx, ops), Num(_, v1)) => Num(nx, performOps(ops, v1))
               case (Num(_, v1), X(nx, ops)) => Num(nx, performOps(ops, v1))
             }
@@ -82,7 +82,7 @@ object Day21Part2 {
 
   def main(args: Array[String]): Unit = {
     val input = readFile(s"src/main/resources/day21/input")
-    val equations = parseInput(input)
-    print(solve("root", equations))
+    implicit val equations: Map[String, Expression] = parseInput(input)
+    print(solve("root"))
   }
 }
