@@ -2,11 +2,13 @@ package aoc2022
 
 import aoc2022.Day22Part1.parseInstructions
 
+import scala.collection.immutable.Map
 import scala.collection.mutable
+import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 object Day22Part2 {
-  case class Tile(cubeNum: Int, row: Int, col: Int)
+  case class Tile(cubeNum: Int, row: Int, col: Int, direction: Direction)
 
   sealed trait Direction {
     def value: Int
@@ -29,58 +31,63 @@ object Day22Part2 {
     val height = 50
 
     Seq((cubeNum, row, col, direction))
-      .map { case (cubeNum, row, col, direction) =>
-        direction match {
-          case Right => (cubeNum, row, col + 1, direction)
-          case Down => (cubeNum, row + 1, col, direction)
-          case Left => (cubeNum, row, col - 1, direction)
-          case Up => (cubeNum, row - 1, col, direction)
+      .map { case (cubeNum, row, col, dir) =>
+        dir match {
+          case Right => (cubeNum, row, col + 1, dir)
+          case Down => (cubeNum, row + 1, col, dir)
+          case Left => (cubeNum, row, col - 1, dir)
+          case Up => (cubeNum, row - 1, col, dir)
         }
       }
-      .map { case (cubeNum, row, col, direction) =>
+      .map { case (cubeNum, row, col, dir) =>
+        // the tuples here are hardcoded to match the parsing
         if (row >= height) { // down
+          assert(dir == Down)
           cubeNum match {
-            case 0 => (2, 0, col, Down)
-            case 1 => (2, col, 49, Left)
-            case 2 => (4, 0, col, Down)
-            case 3 => (5, 0, col, Down)
-            case 4 => (5, col, 49, Left)
-            case 5 => (1, 0, col, Down)
+            case 0 => (2, col, 49, Left)
+            case 1 => (2, 0, col, Down)
+            case 2 => (3, 0, col, Down)
+            case 3 => (5, col, 49, Left)
+            case 4 => (5, 0, col, Down)
+            case 5 => (0, 0, col, Down)
           }
         } else if (row < 0) { // up
+          assert(dir == Up)
           cubeNum match {
-            case 0 => (5, col, 0, Right)
-            case 1 => (5, 49, col, Up)
-            case 2 => (0, 49, col, Up)
-            case 3 => (2, col, 0, Right)
-            case 4 => (2, 49, col, Up)
-            case 5 => (3, 49, col, Up)
+            case 0 => (5, 49, col, Up)
+            case 1 => (5, col, 0, Right)
+            case 2 => (1, 49, col, Up)
+            case 3 => (2, 49, col, Up)
+            case 4 => (2, col, 0, Right)
+            case 5 => (4, 49, col, Up)
           }
         } else if (col >= width) { // right
+          assert(dir == Right)
           cubeNum match {
-            case 0 => (1, row, 0, Right)
-            case 1 => (4, 49 - row, 49, Left)
-            case 2 => (1, 49, row, Up)
-            case 3 => (4, row, 0, Right)
-            case 4 => (1, 49 - row, 49, Left)
-            case 5 => (4, 49, row, Up)
+            case 0 => (3, 49 - row, 49, Left)
+            case 1 => (0, row, 0, Right)
+            case 2 => (0, 49, row, Up)
+            case 3 => (0, 49 - row, 49, Left)
+            case 4 => (3, row, 0, Right)
+            case 5 => (3, 49, row, Up)
           }
         } else if (col < 0) { // left
+          assert(dir == Left)
           cubeNum match {
-            case 0 => (3, 49 - row, 0, Right)
-            case 1 => (0, row, 49, Left)
-            case 2 => (3, 0, row, Down)
-            case 3 => (0, 49 - row, 0, Right)
-            case 4 => (3, row, 49, Left)
-            case 5 => (0, 0, row, Down)
+            case 0 => (1, row, 49, Left)
+            case 1 => (4, 49 - row, 0, Right)
+            case 2 => (4, 0, row, Down)
+            case 3 => (4, row, 49, Left)
+            case 4 => (1, 49 - row, 0, Right)
+            case 5 => (1, 0, row, Down)
           }
-        } else { (cubeNum, row, col, direction) }
+        } else { (cubeNum, row, col, dir) }
       }
       .head
   }
 
 
-  case class Maze(cube: Array[Array[Array[Char]]]) {
+  case class Maze(cube: Array[Array[Array[Char]]], cubeLocations: Map[Int, (Int, Int)], debugCube: Array[Array[Array[Char]]]) {
     val width: Int = 50
     val height: Int = 50
 
@@ -90,8 +97,23 @@ object Day22Part2 {
 
       cube(newCubeNum)(newRow)(newCol) match {
         case ' ' => getTile(newCubeNum, newRow, newCol, newDirection)
-        case '.' => Option(Tile(newCubeNum, newRow, newCol))
-        case '#' => None
+        case '.' =>
+          debugCube(cubeNum)(row)(col) = direction match {
+            case Up => '^'
+            case Down => 'V'
+            case Left => '<'
+            case Right => '>'
+          }
+          debugCube(newCubeNum)(newRow)(newCol) = '*'
+          Option(Tile(newCubeNum, newRow, newCol, newDirection))
+        case '#' =>
+          debugCube(cubeNum)(row)(col) = '*'
+          println(s"=============================== Debug Cube $cubeNum =========================")
+          println(printCube(debugCube(cubeNum)))
+          println(s"=============================================================================")
+
+
+          None
       }
     }
   }
@@ -116,22 +138,41 @@ object Day22Part2 {
     }
 
     def move(maze: Maze, numSteps: Int): Player = {
-      println(s"numsteps = ${numSteps}")
       if (numSteps == 0) {
+        println(s"=============================== Debug Cube $cubeNum =========================")
+        println(printCube(maze.debugCube(cubeNum)))
+        println(s"=============================================================================")
         this
       } else {
         maze.getTile(cubeNum, row, col, facing) match {
-          case None => debug(this)
-          case Some(Tile(cn, r, c)) => debug(Player(cn, r, c, facing)).move(maze, numSteps - 1)
+          case None =>
+            println(s"hit wall at $numSteps steps")
+            debug(this)
+          case Some(Tile(cn, r, c, newDir)) =>
+            val stepsLeft = numSteps - 1
+            if (stepsLeft > 0) {
+              debug(Player(cn, r, c, newDir)).move(maze, numSteps - 1)
+            } else {
+              Player(cn, r, c, newDir)
+            }
         }
       }
     }
 
-    def code: Int = 1000 * (row + 1) + 4 * (col + 1) + facing.value
+    def code(cubeLocations: Map[Int, (Int, Int)]): Int = {
+      val cubeLocation = cubeLocations(cubeNum)
+      val gRow = cubeLocation._1 + row
+      val gCol = cubeLocation._2 + col
+      1000 * (gRow + 1) + 4 * (gCol + 1) + facing.value
+    }
   }
 
+  var playerMoves = mutable.ArrayBuffer[Player]()
   def debug(p: Player): Player = {
-    println(p)
+    if (playerMoves.isEmpty || playerMoves.last != p) {
+      playerMoves.append(p)
+      println(p)
+    }
     p
   }
 
@@ -148,24 +189,54 @@ object Day22Part2 {
       }
     }
 
+    val cubeLocations: Map[Int, (Int, Int)] = Map(
+      0 -> (0, 100),
+      1 -> (0, 50),
+      2 -> (50, 50),
+      3 -> (100, 50),
+      4 -> (100, 0),
+      5 -> (150, 0),
+    )
+
     val cube = (0 to 5).map { _ => Array.ofDim[Char](50, 50) }.toArray
+//    cubeLocations.foreach { case (cubeNum,(startRow, startCol)) =>
+//      (startRow until (startRow + 50)).foreach { row =>
+//        (startCol until (startCol + 50)).foreach { col =>
+//          cube(cubeNum)(row)(col) = map(row)(col)
+//        }
+//      }
+//    }
+
+
 
     (0 until 50).foreach { row =>
-      (50 until 100).foreach { col => cube(0)(row)(col - 50) = map(row)(col) }
-      (100 until 150).foreach { col => cube(1)(row)(col - 100) = map(row)(col) }
+      (100 until 150).foreach { col => cube(0)(row)(col - 100) = map(row)(col) }
+      (50 until 100).foreach { col => cube(1)(row)(col - 50) = map(row)(col) }
     }
     (50 until 100).foreach { row =>
       (50 until 100).foreach { col => cube(2)(row - 50)(col - 50) = map(row)(col) }
     }
     (100 until 150).foreach { row =>
-      (0 until 50).foreach { col => cube(3)(row - 100)(col) = map(row)(col) }
-      (50 until 100).foreach { col => cube(4)(row - 100)(col - 50) = map(row)(col) }
+      (50 until 100).foreach { col => cube(3)(row - 100)(col - 50) = map(row)(col) }
+      (0 until 50).foreach { col => cube(4)(row - 100)(col) = map(row)(col) }
     }
     (150 until 200).foreach { row =>
       (0 until 50).foreach { col => cube(5)(row - 150)(col) = map(row)(col) }
     }
 
-    Maze(cube)
+    val debugcube = (0 to 5).map { _ => Array.ofDim[Char](50, 50) }.toArray
+    debugcube.indices.foreach { cubeNum =>
+      val nthCube = debugcube(cubeNum)
+      nthCube.indices.foreach { rowNum =>
+        val nthRow = nthCube(rowNum)
+        nthRow.indices.foreach { colNum =>
+          nthRow(colNum) = cube(cubeNum)(rowNum)(colNum)
+        }
+      }
+    }
+
+
+    Maze(cube, cubeLocations, debugcube)
   }
 
   def printCube(cube: Array[Array[Char]]): String = {
@@ -191,11 +262,13 @@ object Day22Part2 {
       println(s"=======================================================================")
     }
 
-    val finalPlayer = instructions.foldLeft(debug(Player(0, 0, startAtCol, Right))) {
+    val finalPlayer = instructions.foldLeft(debug(Player(1, 0, startAtCol, Right))) {
       case (player, instruction) =>
         println(s"instruction: $instruction")
         Try(instruction.toInt) match {
-          case Success(steps) => debug(player.move(maze, steps))
+          case Success(steps) =>
+            println(s"move $steps ${player.facing}")
+            debug(player.move(maze, steps))
           case Failure(_) => instruction match {
             case "R" => debug(player.turnClockwise())
             case "L" => debug(player.turnCounterClockwise())
@@ -203,6 +276,7 @@ object Day22Part2 {
         }
     }
 
-    println(finalPlayer.code)
+    println(finalPlayer.code(maze.cubeLocations))
+    //assert(finalPlayer.code > 44200)
   }
 }
