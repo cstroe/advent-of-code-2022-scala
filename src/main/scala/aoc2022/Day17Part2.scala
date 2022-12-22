@@ -2,18 +2,19 @@ package aoc2022
 
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import scala.collection.mutable
 
 object Day17Part2 {
   class RockStore(var store: Array[Char] = Array.fill(32768)(0),
-                  private var maxRow: Long = -1L,
-                  private var currentLowIndex: Long = 0L) {
+                  private var rowsToSkip: Long = 0,
+                  private var maxRow: Long = -1L) {
     def add(rock: FallingRock): Unit = {
       val bottomRow = rock.row - rock.chars.length + 1
 
       var i = 0
       while(i < rock.chars.length) {
         val currentRow = bottomRow + i
-        val storeArrayIndex = (currentRow - currentLowIndex).toInt
+        val storeArrayIndex = (currentRow - rowsToSkip).toInt
         if (storeArrayIndex >= store.length) { growArray() }
         val existingChar = store(storeArrayIndex)
         val maskByte: Char = rock.chars(i)
@@ -36,14 +37,53 @@ object Day17Part2 {
       store = newStore
     }
 
-    def getCharByRowNum(rowNum: Int): Char = {
-      if (rowNum >= store.length) { 0x00 }
-      else if (rowNum < 0) { 0xFF }
-      else { store(rowNum) }
+    def getCharByRowNum(rowNum: Long): Char = {
+      val arrayIndex = rowNum - rowsToSkip
+      if (arrayIndex >= store.length) { 0x00 }
+      else if (arrayIndex < 0) { 0xFF }
+      else { store(arrayIndex.toInt) }
+    }
+
+    def getTop(n: Int): Option[String] = {
+      val chars = Array.ofDim[Char](n)
+      (0 until n).foreach { i =>
+        val currentArrayIndex = maxRow - rowsToSkip
+        chars(i) = store((currentArrayIndex - i).toInt) // will error on Int overflow
+      }
+
+      val fullRowsExist = chars.sliding(3).exists { w =>
+        w.foldLeft(0x00) { case (acc, chr) => (acc | chr).toChar } == 0x7F
+      }
+      if (fullRowsExist) { Option(chars.mkString("")) }
+      else { None }
     }
 
     def isEmpty: Boolean = maxRow == -1L
     def getMaxRow: Long = maxRow
+
+    def skipAheadBy(height: Long): Unit = {
+      rowsToSkip += height
+      maxRow += height
+    }
+
+    def printTop(startAtRow: Long, showN: Long): String = {
+      val str = new mutable.StringBuilder()
+      val topRow = startAtRow
+      val bottomRow = startAtRow - showN
+      (topRow until (bottomRow, -1)).foreach { row =>
+        str.append('|')
+        val char = getCharByRowNum(row)
+        (0 to 6).foreach { col =>
+          val mask = 0x40 >> col
+          if ((char & mask) != 0) {
+            str.append("█")
+          } else { str.append(".")}
+        }
+        str.append(s"| $row\n")
+      }
+      str.append("+-------+\n")
+      str.toString()
+    }
   }
 
 
@@ -181,12 +221,14 @@ object Day17Part2 {
     }
   }
 
-  def placeRock(room: TallRoom, jetsIter: Iterator[Jet], rock: FallingRock, debug: Boolean): Unit = {
+  def placeRock(room: TallRoom, jetsIter: Iterator[(Jet, Int)], rock: FallingRock, debug: Boolean): Int = {
     var rockCanMove = true
+    var jetNum: Int = 0
     while (rockCanMove) {
       val jet = jetsIter.next()
+      jetNum = jet._2
 
-      if (jet == LeftPush) {
+      if (jet._1 == LeftPush) {
         if (rock.col - 1 >= 0 && rock.isValidMove(room, rock.row, rock.shape.getCharsAtCol(rock.col - 1))) {
           rock.moveLeft()
         }
@@ -202,40 +244,84 @@ object Day17Part2 {
         rockCanMove = false
       }
     }
+
+    jetNum
   }
 
-  def findHeight(jets: Array[Jet], iterations: Long): Long = {
+  def findHeight(jets: Array[Jet], totalRocks: Long): Long = {
     val room = new TallRoom(rocks = new RockStore())
 
+    val stateGenerationLookback = 12
+    val jetsWithIndex = jets.zipWithIndex
+    val shapesWithIndex = rockShapes.zipWithIndex
+
     val shapesIter = Iterator.unfold(0) { i =>
-      if (i >= rockShapes.length) {
-        Option(rockShapes.head, 1)
+      if (i >= shapesWithIndex.length) {
+        Option(shapesWithIndex.head, 1)
       } else {
-        Option(rockShapes(i), i + 1)
+        Option(shapesWithIndex(i), i + 1)
       }
     }
 
     val jetsIter = Iterator.unfold(0) { i =>
-      if (i >= jets.length) {
-        Option((jets(0), 1))
+      if (i >= jetsWithIndex.length) {
+        Option((jetsWithIndex(0), 1))
       } else {
-        Option(jets(i), i + 1)
+        Option(jetsWithIndex(i), i + 1)
       }
     }
 
-    val printIter = Iterator.unfold(0) { i => Option(if (i == 100_000) { (0, 1) } else { (i, i+1) }) }
+    val stateCache = mutable.HashMap[(String, Int, Int), (Long, Long)]()
 
-    var currentIter = 0L
+    var currentRockNum: Long = 1L
+    //var cyclesFound = 0L
+
     val rock = new FallingRock(FlatRock(), 0, 2, Array.empty) // this object will be mutated
-    while(currentIter < iterations) {
-      if (printIter.next() == 0) { println(currentIter) }
-      rock.shape = shapesIter.next()
+    while(currentRockNum <= totalRocks) {
+      val nextShape = shapesIter.next()
+      rock.shape = nextShape._1
       rock.row = room.nextSpawnRow(rock.shape)
       rock.col = 2
-      rock.chars = computeChars(rock.shape.encoded, 2)
-      placeRock(room, jetsIter, rock, debug = false)
+      rock.chars = rock.shape.getCharsAtCol(2)
+      //println(s"Placing rock at ${rock.row}")
+      val jetNum = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(rock)
-      currentIter += 1
+      currentRockNum += 1
+
+      // check for cycle
+      if (currentRockNum > stateGenerationLookback) {
+        room.rocks.getTop(stateGenerationLookback).foreach { topN =>
+          val currentState = (topN, nextShape._2, jetNum)
+          stateCache.get(currentState) match {
+            case None => stateCache.put(currentState, (currentRockNum, room.height))
+            case Some((previousRockNum, previousHeight)) =>
+              stateCache.clear() // don't need these entries anymore
+              stateCache.put(currentState, (currentRockNum, room.height))
+              val currentHeight: Long = room.height
+              println(s"Found cycle after rock number $currentRockNum with height $currentHeight.")
+              room.rocks.printTop(currentHeight, stateGenerationLookback)
+              println(s"Cycle started at rock number $previousRockNum with height $previousHeight")
+              room.rocks.printTop(previousHeight, stateGenerationLookback)
+              val rockNumDelta: Long = currentRockNum - previousRockNum
+              val heightDelta: Long = currentHeight - previousHeight
+              println(s"Cycle found, rock num delta: $rockNumDelta, height delta: $heightDelta")
+              val rocksLeft: Long = totalRocks - currentRockNum
+              println(s"$rocksLeft rocks left")
+              val cyclesToSkipAheadBy: Long = rocksLeft / rockNumDelta
+              println(s"Skipping ahead $cyclesToSkipAheadBy by cycles")
+              val rocksToAdvance: Long = cyclesToSkipAheadBy * rockNumDelta
+              println(s"Advancing by $rocksToAdvance rocks")
+              currentRockNum += rocksToAdvance
+              val heightToGrowBy: Long = cyclesToSkipAheadBy * heightDelta
+              println(s"Growing room by: $heightToGrowBy")
+              room.rocks.skipAheadBy(heightToGrowBy)
+              println(s"Skipped ahead to rock #$currentRockNum, current height at ${room.height}")
+              println(s"Iterations left: ${totalRocks - currentRockNum}")
+          }
+        }
+      }
+
+
     }
 
     room.height
@@ -245,7 +331,7 @@ object Day17Part2 {
     val startTime = ZonedDateTime.now
 
     val jets = parseInput("input")
-    val height = findHeight(jets, 10_000_000)
+    val height = findHeight(jets, 1_000_000_000_000L)
 
     println(s"Room height: $height")
 
