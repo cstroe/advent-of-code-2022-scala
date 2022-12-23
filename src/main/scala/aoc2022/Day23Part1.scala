@@ -26,16 +26,15 @@ object Day23Part1 {
     coords.contains(location._1) && coords(location._1).contains(location._2)
   }
 
-  case class Elf(name: Char, location: (Int, Int), proposalIter: Iterator[ElfMove] = newProposalIter()) {
+  case class Elf(name: Char, location: (Int, Int)) {
     // returns only moves that the Elf can move to
-    def proposedMoves(coords: Map[Int, Map[Int, Array[Elf]]]): Option[ElfMove] = {
+    def proposedMoves(coords: Map[Int, Map[Int, Array[Elf]]], proposalIter: Iterator[ElfMove]): Option[ElfMove] = {
       // If no other Elves are in one of those eight positions, the Elf does not do anything during this round.
       if (!getSurroundingCoords().exists(c => containsElf(c, coords))) {
         println(s"elf ${name} has noone around them, so they will do nothing")
         None
       } else {
         val proposedDirections = (1 to 4).map(_ => proposalIter.next()).toArray
-        proposalIter.next() // next time we start with one advanced
         // TODO: replace with deltas array
         proposedDirections.find {
           case North =>
@@ -86,11 +85,11 @@ object Day23Part1 {
     }
   }
 
-  def simulateRound(roundNum: Int, elves: Array[Elf]): Array[Elf] = {
+  def simulateRound(roundNum: Int, elves: Array[Elf], proposalIter: Iterator[ElfMove]): Array[Elf] = {
     val coords = getCoordinateMap(elves)
 
     val proposedMoves = elves
-      .flatMap { elf => elf.proposedMoves(coords).zipWithIndex.map{ case (move, i) => (elf, (i, move)) } } // each elf proposes their valid moves
+      .flatMap { elf => elf.proposedMoves(coords, proposalIter).zipWithIndex.map{ case (move, i) => (elf, (i, move)) } } // each elf proposes their valid moves
 
     println(s"$roundNum| ==================================")
     println(s"$roundNum| Proposed moves:")
@@ -145,7 +144,7 @@ object Day23Part1 {
 
     println(s"$roundNum| ${elvesThatDidntMove.length} elves didn't move")
     val elvesThatMoved = validMoves.map { case (elf, move) =>
-      Elf(elf.name, elf.getCoord(move), elf.proposalIter)
+      Elf(elf.name, elf.getCoord(move))
     }
     println(s"$roundNum| ${elvesThatMoved.length} elves moved")
 
@@ -228,8 +227,10 @@ object Day23Part1 {
     println(s"============ Initial =====================")
     println(printElves(elves))
     println(s"Num elves: ${elves.length}")
+    val proposalIter: Iterator[ElfMove] = newProposalIter()
     val finalRound = (1 to 10).foldLeft(elves) { case (elves, i) =>
-      val newElves = simulateRound(i, elves)
+      val newElves = simulateRound(i, elves, proposalIter)
+      proposalIter.next() // next time we start with one advanced
       println(s"$i| ============ Round $i =====================")
       println(printElves(newElves))
       println(s"$i| Num elves: ${elves.length}")

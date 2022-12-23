@@ -1,6 +1,6 @@
 package aoc2022
 
-import aoc2022.Day23Part1.{Elf, parseElves, printElves, simulateRound}
+import aoc2022.Day23Part1.{Elf, ElfMove, newProposalIter, parseElves, printElves, simulateRound}
 import org.junit.Test
 import org.scalatest.matchers.should.Matchers
 
@@ -16,7 +16,10 @@ class Day23P1Test extends Matchers {
       .....
     """.split("\n").map(_.trim))
 
-    val round1Result = simulateRound(1, elves)
+    val proposalIter: Iterator[ElfMove] = newProposalIter()
+
+    val round1Result = simulateRound(1, elves, proposalIter)
+    proposalIter.next()
     "\n" + printElves(round1Result) + "\n" shouldBe
       "\n" + """
         AB
@@ -26,7 +29,8 @@ class Day23P1Test extends Matchers {
         D.
       """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
 
-    val round2Result = simulateRound(2, round1Result)
+    val round2Result = simulateRound(2, round1Result, proposalIter)
+    proposalIter.next()
     "\n" + printElves(round2Result) + "\n" shouldBe
       "\n" +
         """
@@ -37,7 +41,8 @@ class Day23P1Test extends Matchers {
         .D..
       """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
 
-    val round3Result = simulateRound(3, round2Result)
+    val round3Result = simulateRound(3, round2Result, proposalIter)
+    proposalIter.next()
     "\n" + printElves(round3Result) + "\n" shouldBe
       "\n" +
         """
@@ -63,7 +68,9 @@ class Day23P1Test extends Matchers {
      */
     val lines = readFileToLines("src/main/resources/day23/testinput")
     val elves: Array[Elf] = parseElves(lines)
-    val round1Result = simulateRound(1, elves)
+    val proposalIter: Iterator[ElfMove] = newProposalIter()
+    val round1Result = simulateRound(1, elves, proposalIter)
+    proposalIter.next()
     println("======= round 1 ========")
     println(printElves(round1Result))
     ("\n" + printElves(round1Result) + "\n") shouldBe
@@ -79,7 +86,8 @@ class Day23P1Test extends Matchers {
       ..U..V...
     """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
 
-    val round2Result = simulateRound(2, round1Result)
+    val round2Result = simulateRound(2, round1Result, proposalIter)
+    proposalIter.next()
     println("======= round 2 ========")
     println(printElves(round2Result))
     ("\n" + printElves(round2Result) + "\n") shouldBe
@@ -95,7 +103,8 @@ class Day23P1Test extends Matchers {
         ...U..V....
     """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
 
-    val round3Result = simulateRound(3, round2Result)
+    val round3Result = simulateRound(3, round2Result, proposalIter)
+    proposalIter.next()
     println("======= round 3 ========")
     println(printElves(round3Result))
     """
