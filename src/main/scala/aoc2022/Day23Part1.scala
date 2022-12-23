@@ -31,7 +31,6 @@ object Day23Part1 {
     def proposedMoves(coords: Map[Int, Map[Int, Array[Elf]]], proposalIter: Iterator[ElfMove]): Option[ElfMove] = {
       // If no other Elves are in one of those eight positions, the Elf does not do anything during this round.
       if (!getSurroundingCoords().exists(c => containsElf(c, coords))) {
-        println(s"elf ${name} has noone around them, so they will do nothing")
         None
       } else {
         val proposedDirections = (1 to 4).map(_ => proposalIter.next()).toArray
@@ -221,7 +220,7 @@ object Day23Part1 {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines = readFileToLines("src/main/resources/day23/testinput")
+    val lines = readFileToLines("src/main/resources/day23/input")
     val elves: Array[Elf] = parseElves(lines)
 
     println(s"============ Initial =====================")
