@@ -83,6 +83,12 @@ class Day17Part2Test extends Matchers {
   }
 
   @Test
+  def inputHeight1TrillionIsCorrect(): Unit = {
+    val jets = parseInput("input")
+    findHeight(jets, 1_000_000_000_000L) shouldBe 1_581_449_275_319L
+  }
+
+  @Test
   def inputHeightIsCorrect(): Unit = {
     val jets = parseInput("input")
     findHeight(jets, 2022) shouldBe 3157
@@ -115,10 +121,29 @@ class Day17Part2Test extends Matchers {
     room.rocks.getTop(3) shouldBe empty
     room.height shouldBe 5
     room.rocks.getMaxRow shouldBe 4
-    room.rocks.printTop(4, 5) shouldBe ""
+    val expectedTop5 =
+      """
+        |.█.....| 4
+        |███....| 3
+        |.█.....| 2
+        |████...| 1
+        |████...| 0
+        +-------+
+      """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
+    room.rocks.printTop(4, 5) shouldBe expectedTop5
 
     room.rocks.add(newFlatRock(3, 3))
-    val expectedTop3 = Array(0x0F.toChar, 0x78.toChar, 0x78.toChar).mkString("")
+    val expectedTop5_2 =
+      """
+        |.█.....| 4
+        |███████| 3
+        |.█.....| 2
+        |████...| 1
+        |████...| 0
+        +-------+
+      """.split("\n").map(_.trim).filterNot(_.isBlank).mkString("\n") + "\n"
+    room.rocks.printTop(4, 5) shouldBe expectedTop5_2
+    val expectedTop3 = Array(0x20.toChar, 0x7F.toChar, 0x20.toChar).mkString("")
     room.rocks.getTop(3) shouldBe Option(expectedTop3)
   }
 

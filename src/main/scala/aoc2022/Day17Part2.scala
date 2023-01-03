@@ -273,11 +273,12 @@ object Day17Part2 {
 
     val stateCache = mutable.HashMap[(String, Int, Int), (Long, Long)]()
 
-    var currentRockNum: Long = 1L
-    //var cyclesFound = 0L
+    var currentRockNum: Long = 0L
+    var foundCycle = false
+    var heightToGrowBy = 0L
 
     val rock = new FallingRock(FlatRock(), 0, 2, Array.empty) // this object will be mutated
-    while(currentRockNum <= totalRocks) {
+    while(currentRockNum < totalRocks) {
       val nextShape = shapesIter.next()
       rock.shape = nextShape._1
       rock.row = room.nextSpawnRow(rock.shape)
@@ -286,10 +287,9 @@ object Day17Part2 {
       //println(s"Placing rock at ${rock.row}")
       val jetNum = placeRock(room, jetsIter, rock, debug = false)
       room.rocks.add(rock)
-      currentRockNum += 1
 
       // check for cycle
-      if (currentRockNum > stateGenerationLookback) {
+      if (!foundCycle && currentRockNum > stateGenerationLookback) {
         room.rocks.getTop(stateGenerationLookback).foreach { topN =>
           val currentState = (topN, nextShape._2, jetNum)
           stateCache.get(currentState) match {
@@ -298,7 +298,7 @@ object Day17Part2 {
               stateCache.clear() // don't need these entries anymore
               stateCache.put(currentState, (currentRockNum, room.height))
               val currentHeight: Long = room.height
-              println(s"Found cycle after rock number $currentRockNum with height $currentHeight.")
+              println(s"Found cycle at rock number $currentRockNum with height $currentHeight.")
               room.rocks.printTop(currentHeight, stateGenerationLookback)
               println(s"Cycle started at rock number $previousRockNum with height $previousHeight")
               room.rocks.printTop(previousHeight, stateGenerationLookback)
@@ -312,19 +312,23 @@ object Day17Part2 {
               val rocksToAdvance: Long = cyclesToSkipAheadBy * rockNumDelta
               println(s"Advancing by $rocksToAdvance rocks")
               currentRockNum += rocksToAdvance
-              val heightToGrowBy: Long = cyclesToSkipAheadBy * heightDelta
+              heightToGrowBy = cyclesToSkipAheadBy * heightDelta
               println(s"Growing room by: $heightToGrowBy")
-              room.rocks.skipAheadBy(heightToGrowBy)
+              //room.rocks.skipAheadBy(heightToGrowBy)
               println(s"Skipped ahead to rock #$currentRockNum, current height at ${room.height}")
-              println(s"Iterations left: ${totalRocks - currentRockNum}")
+              println(s"Rocks left: ${totalRocks - currentRockNum}")
+              foundCycle = true
           }
         }
       }
+      else {
+        println(s"Placed rock $currentRockNum with height ${room.height}")
+      }
 
-
+      currentRockNum += 1
     }
 
-    room.height
+    room.height + heightToGrowBy
   }
 
   def main(args: Array[String]): Unit = {
